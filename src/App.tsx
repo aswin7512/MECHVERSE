@@ -12,6 +12,8 @@ import Events from "./pages/Events";
 import Registration from "./pages/Registration";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
+import ContactUs from "./pages/ContactUs";
+import CulturalEvents from "./pages/CulturalEvents";
 
 export default function App() {
   const [showSplash, setShowSplash] = useState(true);
@@ -77,6 +79,8 @@ export default function App() {
             <Route path="technical" element={<Events />} />
             <Route path="non-technical" element={<Events />} />
             <Route path="register" element={<Registration />} />
+            <Route path="contact" element={<ContactUs />} />
+            <Route path="cultural" element={<CulturalEvents />} />
             <Route path="admin" element={<AdminLogin />} />
             <Route path="admin/dashboard" element={<AdminDashboard />} />
           </Route>

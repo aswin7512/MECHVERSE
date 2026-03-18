@@ -1,15 +1,19 @@
+import { useState } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
-import { Wrench, Settings, Cpu, FileText, UserCircle } from "lucide-react";
+import { Wrench, Settings, Cpu, FileText, UserCircle, Music, Phone, Menu, X } from "lucide-react";
 import { cn } from "../lib/utils";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 
 export default function Layout() {
   const location = useLocation();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navItems = [
     { name: "HQ", path: "/", icon: Wrench },
     { name: "Tech Events", path: "/technical", icon: Cpu },
     { name: "Non-Tech Events", path: "/non-technical", icon: Settings },
+    { name: "Cultural", path: "/cultural", icon: Music },
+    { name: "Contact", path: "/contact", icon: Phone },
     { name: "Register", path: "/register", icon: FileText },
   ];
 
@@ -47,21 +51,65 @@ export default function Layout() {
               })}
             </nav>
 
-            <Link
-              to="/admin"
-              className="text-mech-muted hover:text-mech-accent transition-colors flex items-center justify-center w-8 h-8 rounded-full overflow-hidden border border-mech-border hover:border-mech-accent"
-              title="Admin Panel"
-            >
-              {/* Replace the src below with your actual event logo PNG path (e.g., "/logo.png") */}
-              <img 
-                src="logo.png" 
-                alt="Event Logo" 
-                className="w-full h-full object-cover"
-                referrerPolicy="no-referrer"
-              />
-            </Link>
+            <div className="flex items-center space-x-4">
+              <Link
+                to="/admin"
+                className="text-mech-muted hover:text-mech-accent transition-colors flex items-center justify-center w-8 h-8 rounded-full overflow-hidden border border-mech-border hover:border-mech-accent"
+                title="Admin Panel"
+              >
+                {/* Replace the src below with your actual event logo PNG path (e.g., "/logo.png") */}
+                <img 
+                  src="logo.png" 
+                  alt="Event Logo" 
+                  className="w-full h-full object-cover"
+                  referrerPolicy="no-referrer"
+                />
+              </Link>
+
+              <button
+                className="md:hidden text-mech-muted hover:text-mech-accent transition-colors"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              >
+                {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              </button>
+            </div>
           </div>
         </div>
+
+        {/* Mobile Menu */}
+        <AnimatePresence>
+          {isMobileMenuOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="md:hidden border-t border-mech-border bg-mech-panel/95 backdrop-blur-md overflow-hidden"
+            >
+              <nav className="flex flex-col px-4 py-4 space-y-4">
+                {navItems.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = location.pathname === item.path;
+                  return (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className={cn(
+                        "flex items-center space-x-3 text-sm font-mono uppercase tracking-wider transition-colors p-2 rounded-md",
+                        isActive
+                          ? "text-mech-accent bg-mech-accent/10"
+                          : "text-mech-muted hover:text-mech-text hover:bg-mech-border/50"
+                      )}
+                    >
+                      <Icon className="w-5 h-5" />
+                      <span>{item.name}</span>
+                    </Link>
+                  );
+                })}
+              </nav>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </header>
 
       <main className="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
