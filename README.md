@@ -1,8 +1,3 @@
-Here are the complete `README.md` and `LICENSE.txt` files for the Mechverse repository.
-
-### `README.md`
-
-````markdown
 # Mechverse ⚙️
 
 > **Ignite the Gears of Innovation**
@@ -42,7 +37,6 @@ Before you begin, ensure you have the following installed:
    ```bash
    git clone [https://github.com/yourusername/mechverse.git](https://github.com/yourusername/mechverse.git)
    cd mechverse
-````
 
 2.  **Install dependencies:**
 
