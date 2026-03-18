@@ -173,8 +173,8 @@ export default function Registration() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-        <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        <div className="space-y-6">
           <div className="panel p-8 space-y-6">
             <h2 className="text-2xl font-bold uppercase tracking-wider text-mech-accent border-b border-mech-border pb-4">
               Pilot Data
@@ -290,19 +290,7 @@ export default function Registration() {
               </div>
             </div>
           </div>
-
-          <button
-            type="submit"
-            disabled={submitting || loading}
-            className="w-full py-4 bg-mech-accent text-black font-bold text-lg uppercase tracking-widest hover:bg-mech-accent-hover transition-colors rounded-sm disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center"
-          >
-            {submitting ? (
-              <div className="w-6 h-6 border-2 border-black border-t-transparent rounded-full animate-spin" />
-            ) : (
-              "Initialize Sequence"
-            )}
-          </button>
-        </form>
+        </div>
 
         <div className="space-y-6">
           <div className="panel p-8">
@@ -368,7 +356,12 @@ export default function Registration() {
 
             <div className="flex flex-col md:flex-row items-center justify-between gap-8">
               <div className="w-48 h-48 bg-white p-2 rounded-sm flex items-center justify-center">
-                <QrCode className="w-full h-full text-black" />
+                <img 
+                  src="qr.jpg"
+                  alt="Payment QR Code" 
+                  className="w-full h-full object-contain"
+                  referrerPolicy="no-referrer"
+                />
               </div>
               
               <div className="flex-1 space-y-4 w-full">
@@ -402,8 +395,20 @@ export default function Registration() {
               </div>
             </div>
           </div>
+
+          <button
+            type="submit"
+            disabled={submitting || loading}
+            className="w-full py-4 bg-mech-accent text-black font-bold text-lg uppercase tracking-widest hover:bg-mech-accent-hover transition-colors rounded-sm disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center"
+          >
+            {submitting ? (
+              <div className="w-6 h-6 border-2 border-black border-t-transparent rounded-full animate-spin" />
+            ) : (
+              "Register"
+            )}
+          </button>
         </div>
-      </div>
+      </form>
     </div>
   );
 }
