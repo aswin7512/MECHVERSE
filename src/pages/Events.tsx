@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { supabase, isSupabaseConfigured } from "../lib/supabase";
 import { motion } from "motion/react";
 import { AlertCircle, Zap } from "lucide-react";
@@ -14,6 +14,7 @@ interface Event {
 
 export default function Events() {
   const location = useLocation();
+  const navigate = useNavigate();
   const type = location.pathname.includes("non-technical")
     ? "non-technical"
     : "technical";
@@ -119,7 +120,8 @@ export default function Events() {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: i * 0.1 }}
-              className="panel p-6 flex flex-col h-full relative overflow-hidden group"
+              onClick={() => navigate('/register')}
+              className="panel p-6 flex flex-col h-full relative overflow-hidden group cursor-pointer hover:border-mech-accent transition-colors"
             >
               <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                 <Zap className="w-24 h-24 text-mech-accent" />

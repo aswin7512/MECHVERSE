@@ -86,6 +86,11 @@ export default function Registration() {
       return;
     }
 
+    if (!formData.transaction_id.trim()) {
+      setError("Please enter the UPI Transaction ID.");
+      return;
+    }
+
     setSubmitting(true);
     setError(null);
 
@@ -183,7 +188,7 @@ export default function Registration() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="text-xs font-mono text-mech-muted uppercase tracking-wider">
-                  Full Name
+                  Full Name <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -198,7 +203,7 @@ export default function Registration() {
 
               <div className="space-y-2">
                 <label className="text-xs font-mono text-mech-muted uppercase tracking-wider">
-                  College
+                  College <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -213,7 +218,7 @@ export default function Registration() {
 
               <div className="space-y-2">
                 <label className="text-xs font-mono text-mech-muted uppercase tracking-wider">
-                  Class
+                  Class <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -228,7 +233,7 @@ export default function Registration() {
 
               <div className="space-y-2">
                 <label className="text-xs font-mono text-mech-muted uppercase tracking-wider">
-                  Semester
+                  Semester <span className="text-red-500">*</span>
                 </label>
                 <select
                   name="semester"
@@ -246,7 +251,7 @@ export default function Registration() {
 
               <div className="space-y-2">
                 <label className="text-xs font-mono text-mech-muted uppercase tracking-wider">
-                  KTU ID
+                  KTU ID <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -261,7 +266,7 @@ export default function Registration() {
 
               <div className="space-y-2">
                 <label className="text-xs font-mono text-mech-muted uppercase tracking-wider">
-                  Phone Number
+                  Phone Number <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="tel"
@@ -276,7 +281,7 @@ export default function Registration() {
 
               <div className="space-y-2">
                 <label className="text-xs font-mono text-mech-muted uppercase tracking-wider">
-                  Email
+                  Email <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="email"
@@ -376,7 +381,7 @@ export default function Registration() {
                 
                 <div className="mt-4 space-y-2">
                   <label className="text-xs font-mono text-mech-muted uppercase tracking-wider">
-                    Transaction ID
+                    Transaction ID <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"

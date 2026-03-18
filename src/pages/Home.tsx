@@ -18,6 +18,9 @@ export default function Home() {
         <p className="mt-4 text-xl md:text-2xl font-mono text-mech-muted tracking-widest uppercase">
           Ignite the Gears of Innovation
         </p>
+        <p className="mt-8 max-w-2xl mx-auto text-sm md:text-base font-mono text-mech-muted leading-relaxed">
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+        </p>
       </motion.div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-5xl mt-16">
