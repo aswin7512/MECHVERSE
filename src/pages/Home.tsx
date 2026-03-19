@@ -27,7 +27,7 @@ export default function Home() {
         </div>
 
         <p className="mt-8 max-w-3xl mx-auto text-sm md:text-base font-mono text-mech-muted leading-relaxed">
-          MechVerse is the premier technical odyssey organized by the Mechanical Engineering Association (MEA) of the College of Engineering Munnar (CEMP). It serves as a high-octane intersection where academic rigor meets industrial innovation.
+          MechVerse is the premier technical odyssey organized by the Mechanical Engineering Association (MEA) of the College of Engineering and Management Punnapra (CEMP). It serves as a high-octane intersection where academic rigor meets industrial innovation.
           <br /><br />
           Driven by a passion for machines and a vision for the future, MechVerse is designed to challenge the limits of engineering through immersive technical experiences, expert-led workshops, and high-level exhibitions.
         </p>
