@@ -309,47 +309,67 @@ export default function Registration() {
               </div>
             ) : (
               <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-                {events.map((event) => (
-                  <label
-                    key={event.id}
-                    className={`flex items-center justify-between p-4 border rounded-sm cursor-pointer transition-colors ${
-                      selectedEvents.includes(event.id)
-                        ? "border-mech-accent bg-mech-accent/10"
-                        : "border-mech-border bg-black hover:border-mech-muted"
-                    }`}
-                  >
-                    <input
-                      type="checkbox"
-                      className="hidden"
-                      checked={selectedEvents.includes(event.id)}
-                      onChange={() => handleEventToggle(event.id)}
-                    />
-                    <div className="flex items-center space-x-4">
-                      <div
-                        className={`w-5 h-5 border rounded-sm flex items-center justify-center ${
-                          selectedEvents.includes(event.id)
-                            ? "border-mech-accent bg-mech-accent"
-                            : "border-mech-muted"
-                        }`}
-                      >
-                        {selectedEvents.includes(event.id) && (
-                          <CheckCircle2 className="w-4 h-4 text-black" />
-                        )}
+                {events.map((event) => {
+                  const isTechnical = event.type === "technical";
+                  const hasSelectedTechnical = selectedEvents.some(
+                    (id) => events.find((e) => e.id === id)?.type === "technical"
+                  );
+                  const isOtherTechnicalSelected =
+                    isTechnical && hasSelectedTechnical && !selectedEvents.includes(event.id);
+
+                  return (
+                    <label
+                      key={event.id}
+                      className={`flex items-center justify-between p-4 border rounded-sm transition-colors ${
+                        isOtherTechnicalSelected
+                          ? "opacity-50 cursor-not-allowed border-mech-border bg-black/50"
+                          : "cursor-pointer"
+                      } ${
+                        selectedEvents.includes(event.id)
+                          ? "border-mech-accent bg-mech-accent/10"
+                          : !isOtherTechnicalSelected
+                          ? "border-mech-border bg-black hover:border-mech-muted"
+                          : ""
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        className="hidden"
+                        checked={selectedEvents.includes(event.id)}
+                        disabled={isOtherTechnicalSelected}
+                        onChange={() => {
+                          if (!isOtherTechnicalSelected) {
+                            handleEventToggle(event.id);
+                          }
+                        }}
+                      />
+                      <div className="flex items-center space-x-4">
+                        <div
+                          className={`w-5 h-5 border rounded-sm flex items-center justify-center ${
+                            selectedEvents.includes(event.id)
+                              ? "border-mech-accent bg-mech-accent"
+                              : "border-mech-muted"
+                          }`}
+                        >
+                          {selectedEvents.includes(event.id) && (
+                            <CheckCircle2 className="w-4 h-4 text-black" />
+                          )}
+                        </div>
+                        <div>
+                          <h3 className="font-bold uppercase tracking-wider text-sm">
+                            {event.title}
+                          </h3>
+                          <span className="text-xs font-mono text-mech-muted uppercase">
+                            {event.type}
+                          </span>
+                        </div>
                       </div>
-                      <div>
-                        <h3 className="font-bold uppercase tracking-wider text-sm">
-                          {event.title}
-                        </h3>
-                        <span className="text-xs font-mono text-mech-muted uppercase">
-                          {event.type}
-                        </span>
-                      </div>
-                    </div>
-                    <span className="font-mono text-mech-accent font-bold">
-                      ₹{event.fee}
-                    </span>
-                  </label>
-                ))}
+                      <span className="font-mono text-mech-accent font-bold">
+                        ₹{event.fee}
+                      </span>
+                    </label>
+                  );
+                })}
               </div>
             )}
           </div>
