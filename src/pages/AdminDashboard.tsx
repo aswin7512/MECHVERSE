@@ -29,6 +29,7 @@ interface Registration {
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<"registrations" | "events">("registrations");
+  const [selectedEventFilter, setSelectedEventFilter] = useState<string>("all");
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
@@ -120,7 +121,11 @@ export default function AdminDashboard() {
 
   const exportRegistrationsCSV = () => {
     const headers = ["Pilot Name", "College", "KTU ID", "Class/Sem", "Phone", "Email", "Events", "Total (₹)", "Payment ID", "Status", "Date"];
-    const csvData = registrations.map(reg => {
+    const dataToExport = selectedEventFilter === "all" 
+      ? registrations 
+      : registrations.filter(r => (r.events || []).includes(selectedEventFilter));
+      
+    const csvData = dataToExport.map(reg => {
       const eventNames = (reg.events || []).map(eventId => {
         const event = events.find(e => e.id === eventId);
         return event ? event.title : eventId;
@@ -259,6 +264,10 @@ export default function AdminDashboard() {
     }
   };
 
+  const filteredRegistrations = selectedEventFilter === "all"
+    ? registrations
+    : registrations.filter((r) => (r.events || []).includes(selectedEventFilter));
+
   return (
     <div className="max-w-7xl mx-auto">
       <div className="flex justify-between items-center mb-8 border-b border-mech-border pb-4">
@@ -325,13 +334,27 @@ export default function AdminDashboard() {
         <div className="panel overflow-hidden">
           <div className="flex justify-between items-center p-4 border-b border-mech-border bg-black/30">
             <h2 className="text-lg font-bold uppercase tracking-wider text-mech-accent">All Registrations</h2>
-            <button
-              onClick={exportRegistrationsCSV}
-              className="flex items-center space-x-2 px-4 py-2 bg-mech-panel text-mech-text hover:bg-mech-accent hover:text-black transition-colors rounded-sm font-mono text-xs uppercase tracking-wider"
-            >
-              <Download className="w-4 h-4" />
-              <span>Export CSV</span>
-            </button>
+            <div className="flex items-center space-x-4">
+              <select
+                value={selectedEventFilter}
+                onChange={(e) => setSelectedEventFilter(e.target.value)}
+                className="bg-black border border-mech-border rounded-sm px-3 py-1.5 text-mech-text focus:outline-none focus:border-mech-accent font-mono text-sm uppercase tracking-wider"
+              >
+                <option value="all">All Activities</option>
+                {events.map((event) => (
+                  <option key={event.id} value={event.id}>
+                    {event.title}
+                  </option>
+                ))}
+              </select>
+              <button
+                onClick={exportRegistrationsCSV}
+                className="flex items-center space-x-2 px-4 py-2 bg-mech-panel text-mech-text hover:bg-mech-accent hover:text-black transition-colors rounded-sm font-mono text-xs uppercase tracking-wider"
+              >
+                <Download className="w-4 h-4" />
+                <span>Export CSV</span>
+              </button>
+            </div>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left font-mono text-sm">
@@ -350,14 +373,14 @@ export default function AdminDashboard() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-mech-border">
-                {registrations.length === 0 ? (
+                {filteredRegistrations.length === 0 ? (
                   <tr>
                     <td colSpan={10} className="px-6 py-8 text-center text-mech-muted">
-                      No registrations found.
+                      No registrations found for this activity.
                     </td>
                   </tr>
                 ) : (
-                  registrations.map((reg) => (
+                  filteredRegistrations.map((reg) => (
                     <tr key={reg.id} className="hover:bg-white/5 transition-colors">
                       <td className="px-6 py-4 font-bold text-mech-text">{reg.name}</td>
                       <td className="px-6 py-4 text-mech-muted text-xs">{reg.college}</td>
@@ -474,8 +497,8 @@ export default function AdminDashboard() {
                     type="number"
                     required
                     min="0"
-                    value={newEvent.fee || ""}
-                    onChange={(e) => setNewEvent({ ...newEvent, fee: parseInt(e.target.value) || 0 })}
+                    value={newEvent.fee === 0 ? 0 : newEvent.fee || ""}
+                    onChange={(e) => setNewEvent({ ...newEvent, fee: e.target.value === "" ? 0 : parseInt(e.target.value) })}
                     className="w-full bg-black border border-mech-border rounded-sm px-4 py-2 text-mech-text focus:outline-none focus:border-mech-accent font-mono text-sm"
                   />
                 </div>

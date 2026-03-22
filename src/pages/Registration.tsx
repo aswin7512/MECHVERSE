@@ -86,7 +86,7 @@ export default function Registration() {
       return;
     }
 
-    if (!formData.transaction_id.trim()) {
+    if (totalAmount > 0 && !formData.transaction_id.trim()) {
       setError("Please enter the UPI Transaction ID.");
       return;
     }
@@ -374,52 +374,54 @@ export default function Registration() {
             )}
           </div>
 
-          <div className="panel p-8">
-            <h2 className="text-2xl font-bold uppercase tracking-wider text-mech-accent border-b border-mech-border pb-4 mb-6">
-              Payment Gateway
-            </h2>
+          {totalAmount > 0 && (
+            <div className="panel p-8">
+              <h2 className="text-2xl font-bold uppercase tracking-wider text-mech-accent border-b border-mech-border pb-4 mb-6">
+                Payment Gateway
+              </h2>
 
-            <div className="flex flex-col md:flex-row items-center justify-between gap-8">
-              <div className="w-48 h-48 bg-white p-2 rounded-sm flex items-center justify-center">
-                <img 
-                  src="qr.jpg"
-                  alt="Payment QR Code" 
-                  className="w-full h-full object-contain"
-                  referrerPolicy="no-referrer"
-                />
-              </div>
-              
-              <div className="flex-1 space-y-4 w-full">
-                <div className="flex justify-between items-center border-b border-mech-border pb-2">
-                  <span className="font-mono text-sm text-mech-muted uppercase">Selected Events</span>
-                  <span className="font-mono font-bold">{selectedEvents.length}</span>
-                </div>
-                <div className="flex justify-between items-center border-b border-mech-border pb-2">
-                  <span className="font-mono text-sm text-mech-muted uppercase">Total Amount</span>
-                  <span className="font-mono font-bold text-2xl text-mech-accent text-glow">₹{totalAmount}</span>
-                </div>
-                
-                <div className="mt-4 space-y-2">
-                  <label className="text-xs font-mono text-mech-muted uppercase tracking-wider">
-                    Transaction ID <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="transaction_id"
-                    required
-                    value={formData.transaction_id}
-                    onChange={handleInputChange}
-                    className="w-full bg-black border border-mech-border rounded-sm px-4 py-3 text-mech-text focus:outline-none focus:border-mech-accent font-mono transition-colors uppercase"
-                    placeholder="Enter UPI Transaction ID"
+              <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+                <div className="w-48 h-48 bg-white p-2 rounded-sm flex items-center justify-center">
+                  <img 
+                    src="qr.jpg"
+                    alt="Payment QR Code" 
+                    className="w-full h-full object-contain"
+                    referrerPolicy="no-referrer"
                   />
                 </div>
+                
+                <div className="flex-1 space-y-4 w-full">
+                  <div className="flex justify-between items-center border-b border-mech-border pb-2">
+                    <span className="font-mono text-sm text-mech-muted uppercase">Selected Events</span>
+                    <span className="font-mono font-bold">{selectedEvents.length}</span>
+                  </div>
+                  <div className="flex justify-between items-center border-b border-mech-border pb-2">
+                    <span className="font-mono text-sm text-mech-muted uppercase">Total Amount</span>
+                    <span className="font-mono font-bold text-2xl text-mech-accent text-glow">₹{totalAmount}</span>
+                  </div>
+                  
+                  <div className="mt-4 space-y-2">
+                    <label className="text-xs font-mono text-mech-muted uppercase tracking-wider">
+                      Transaction ID <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="transaction_id"
+                      required={totalAmount > 0}
+                      value={formData.transaction_id}
+                      onChange={handleInputChange}
+                      className="w-full bg-black border border-mech-border rounded-sm px-4 py-3 text-mech-text focus:outline-none focus:border-mech-accent font-mono transition-colors uppercase"
+                      placeholder="Enter UPI Transaction ID"
+                    />
+                  </div>
 
-                <p className="text-xs font-mono text-mech-muted uppercase mt-4">
-                  * Scan the QR code to complete payment. Registration will be verified manually.
-                </p>
+                  <p className="text-xs font-mono text-mech-muted uppercase mt-4">
+                    * Scan the QR code to complete payment. Registration will be verified manually.
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           <button
             type="submit"
