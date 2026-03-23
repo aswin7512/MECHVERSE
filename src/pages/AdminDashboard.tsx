@@ -393,7 +393,14 @@ export default function AdminDashboard() {
       ) : activeTab === "registrations" ? (
         <div className="panel overflow-hidden">
           <div className="flex justify-between items-center p-4 border-b border-mech-border bg-black/30">
-            <h2 className="text-lg font-bold uppercase tracking-wider text-mech-accent">All Registrations</h2>
+            <div className="flex items-center space-x-3">
+              <h2 className="text-lg font-bold uppercase tracking-wider text-mech-accent">
+                {selectedEventFilter === "all" ? "All Registrations" : "Filtered Registrations"}
+              </h2>
+              <span className="px-2 py-0.5 bg-mech-accent/10 text-mech-accent text-xs font-mono rounded-sm border border-mech-accent/20">
+                {filteredRegistrations.length} {filteredRegistrations.length === 1 ? 'Entry' : 'Entries'}
+              </span>
+            </div>
             <div className="flex items-center space-x-4">
               <select
                 value={selectedEventFilter}
