@@ -127,7 +127,7 @@ export default function CulturalEvents() {
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className="w-full bg-black/50 border border-mech-border rounded-sm px-4 py-3 text-mech-text focus:outline-none focus:border-mech-accent font-mono text-sm uppercase transition-colors"
-                  placeholder="e.g. John Doe"
+                  placeholder="Your Name Here"
                 />
               </div>
 
@@ -140,7 +140,7 @@ export default function CulturalEvents() {
                     value={formData.department}
                     onChange={(e) => setFormData({ ...formData, department: e.target.value })}
                     className="w-full bg-black/50 border border-mech-border rounded-sm px-4 py-3 text-mech-text focus:outline-none focus:border-mech-accent font-mono text-sm uppercase transition-colors"
-                    placeholder="e.g. Mechanical"
+                    placeholder="e.g. ME"
                   />
                 </div>
                 
@@ -167,7 +167,7 @@ export default function CulturalEvents() {
                   value={formData.mobile_number}
                   onChange={(e) => setFormData({ ...formData, mobile_number: e.target.value.replace(/\D/g, '').slice(0, 10) })}
                   className="w-full bg-black/50 border border-mech-border rounded-sm px-4 py-3 text-mech-text focus:outline-none focus:border-mech-accent font-mono text-sm transition-colors"
-                  placeholder="10-digit mobile number"
+                  placeholder="+91 9876543210"
                 />
               </div>
 
@@ -179,7 +179,7 @@ export default function CulturalEvents() {
                   value={formData.event_type}
                   onChange={(e) => setFormData({ ...formData, event_type: e.target.value })}
                   className="w-full bg-black/50 border border-mech-border rounded-sm px-4 py-3 text-mech-text focus:outline-none focus:border-mech-accent font-mono text-sm uppercase transition-colors"
-                  placeholder="e.g. Dance, Singing, Standup Comedy"
+                  placeholder="e.g. Dance, Song etc.."
                 />
               </div>
 
