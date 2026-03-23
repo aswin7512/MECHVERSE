@@ -1,7 +1,7 @@
 import { useState, useEffect, FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase, isSupabaseConfigured } from "../lib/supabase";
-import { LogOut, Plus, Users, Calendar, AlertCircle, Trash2, Check, X, Download, Edit2 } from "lucide-react";
+import { LogOut, Plus, Users, Calendar, AlertCircle, Trash2, Check, X, Download, Edit2, ClipboardList } from "lucide-react";
 
 interface Event {
   id: string;
@@ -10,6 +10,7 @@ interface Event {
   fee: number;
   time?: string;
   venue?: string;
+  date?: string;
 }
 
 interface Registration {
@@ -26,11 +27,13 @@ interface Registration {
   created_at: string;
   transaction_id?: string;
   status?: 'pending' | 'accepted' | 'rejected';
+  roll_no?: string;
+  attended?: boolean;
 }
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<"registrations" | "events">("registrations");
+  const [activeTab, setActiveTab] = useState<"registrations" | "events" | "attendance">("registrations");
   const [selectedEventFilter, setSelectedEventFilter] = useState<string>("all");
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
@@ -65,6 +68,7 @@ export default function AdminDashboard() {
     fee: 0,
     time: "TBD",
     venue: "TBD",
+    date: "TBD",
   });
 
   const [editingEventId, setEditingEventId] = useState<string | null>(null);
@@ -93,8 +97,8 @@ export default function AdminDashboard() {
         },
       ]);
       setEvents([
-        { id: "1", title: "Robo Wars", type: "technical", fee: 500, time: "10:00 AM", venue: "Main Arena" },
-        { id: "2", title: "CAD Modeling", type: "technical", fee: 200, time: "TBD", venue: "Computer Lab 1" },
+        { id: "1", title: "Robo Wars", type: "technical", fee: 500, time: "10:00 AM", venue: "Main Arena", date: "2026-04-10" },
+        { id: "2", title: "CAD Modeling", type: "technical", fee: 200, time: "TBD", venue: "Computer Lab 1", date: "TBD" },
       ]);
       setLoading(false);
       return;
@@ -187,6 +191,33 @@ export default function AdminDashboard() {
     window.URL.revokeObjectURL(url);
   };
 
+  const exportAttendanceCSV = () => {
+    const dataToExport = selectedEventFilter === "all" 
+      ? registrations 
+      : registrations.filter(r => (r.events || []).includes(selectedEventFilter));
+      
+    const attendedRegs = dataToExport.filter(r => r.attended);
+    const headers = ["Name", "Semester", "Class", "Roll No"];
+    
+    const csvData = attendedRegs.map(reg => {
+      return [
+        `"${reg.name}"`,
+        `"${reg.semester}"`,
+        `"${reg.student_class}"`,
+        `"${reg.roll_no || ''}"`
+      ].join(",");
+    });
+    
+    const csvString = [headers.join(","), ...csvData].join("\n");
+    const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `attendance-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+
   if (!isAuthenticated) {
     return null;
   }
@@ -207,7 +238,7 @@ export default function AdminDashboard() {
       const { error } = await supabase.from("events").insert([newEvent]);
       if (error) throw error;
       
-      setNewEvent({ title: "", description: "", type: "technical", fee: 0, time: "TBD", venue: "TBD" });
+      setNewEvent({ title: "", description: "", type: "technical", fee: 0, time: "TBD", venue: "TBD", date: "TBD" });
       fetchData();
       setAlertDialog({ isOpen: true, message: "Event added successfully" });
     } catch (err: any) {
@@ -324,6 +355,26 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleUpdateRollNo = async (id: string, roll_no: string) => {
+    if (!isSupabaseConfigured) return;
+    try {
+      await supabase.from("registrations").update({ roll_no }).eq("id", id);
+    } catch (err: any) {
+      console.error("Error updating roll number: ", err.message);
+    }
+  };
+
+  const handleToggleAttendance = async (id: string, currentlyAttended: boolean) => {
+    const attended = !currentlyAttended;
+    setRegistrations(registrations.map(r => r.id === id ? { ...r, attended } : r));
+    if (!isSupabaseConfigured) return;
+    try {
+      await supabase.from("registrations").update({ attended }).eq("id", id);
+    } catch (err: any) {
+      console.error("Error updating attendance: ", err.message);
+    }
+  };
+
   const filteredRegistrations = selectedEventFilter === "all"
     ? registrations
     : registrations.filter((r) => (r.events || []).includes(selectedEventFilter));
@@ -379,6 +430,17 @@ export default function AdminDashboard() {
         >
           <Calendar className="w-5 h-5" />
           <span>Manage Events</span>
+        </button>
+        <button
+          onClick={() => setActiveTab("attendance")}
+          className={`flex items-center space-x-2 px-6 py-3 font-bold uppercase tracking-wider rounded-sm transition-colors ${
+            activeTab === "attendance"
+              ? "bg-mech-accent text-black"
+              : "bg-mech-panel text-mech-muted hover:text-mech-text border border-mech-border"
+          }`}
+        >
+          <ClipboardList className="w-5 h-5" />
+          <span>Attendance</span>
         </button>
       </div>
 
@@ -526,6 +588,95 @@ export default function AdminDashboard() {
             </table>
           </div>
         </div>
+      ) : activeTab === "attendance" ? (
+        <div className="panel overflow-hidden">
+          <div className="flex justify-between items-center p-4 border-b border-mech-border bg-black/30">
+            <div className="flex items-center space-x-3">
+              <h2 className="text-lg font-bold uppercase tracking-wider text-mech-accent">
+                {selectedEventFilter === "all" ? "All Attendance" : "Filtered Attendance"}
+              </h2>
+              <span className="px-2 py-0.5 bg-mech-accent/10 text-mech-accent text-xs font-mono rounded-sm border border-mech-accent/20">
+                {filteredRegistrations.filter(r => r.status === 'accepted').length} Accepted {filteredRegistrations.filter(r => r.status === 'accepted').length === 1 ? 'Entry' : 'Entries'}
+              </span>
+            </div>
+            <div className="flex items-center space-x-4">
+              <select
+                value={selectedEventFilter}
+                onChange={(e) => setSelectedEventFilter(e.target.value)}
+                className="bg-black border border-mech-border rounded-sm px-3 py-1.5 text-mech-text focus:outline-none focus:border-mech-accent font-mono text-sm uppercase tracking-wider"
+              >
+                <option value="all">All Activities</option>
+                {events.map((event) => (
+                  <option key={event.id} value={event.id}>
+                    {event.title}
+                  </option>
+                ))}
+              </select>
+              <button
+                onClick={exportAttendanceCSV}
+                className="flex items-center space-x-2 px-4 py-2 bg-mech-panel text-mech-text hover:bg-mech-accent hover:text-black transition-colors rounded-sm font-mono text-xs uppercase tracking-wider"
+              >
+                <Download className="w-4 h-4" />
+                <span>Export Attendees</span>
+              </button>
+            </div>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left font-mono text-sm">
+              <thead className="bg-black/50 text-mech-muted uppercase text-xs">
+                <tr>
+                  <th className="px-6 py-4 border-b border-mech-border">Pilot Name</th>
+                  <th className="px-6 py-4 border-b border-mech-border">Sem & Class</th>
+                  <th className="px-6 py-4 border-b border-mech-border">Contact</th>
+                  <th className="px-6 py-4 border-b border-mech-border">Roll No</th>
+                  <th className="px-6 py-4 border-b border-mech-border text-center">Attended</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-mech-border">
+                {filteredRegistrations.filter(r => r.status === 'accepted').length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="px-6 py-8 text-center text-mech-muted">
+                      No accepted registrations found for this activity.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredRegistrations.filter(r => r.status === 'accepted').map((reg) => (
+                    <tr key={reg.id} className={`hover:bg-white/5 transition-colors ${reg.attended ? 'bg-mech-accent/5' : ''}`}>
+                      <td className="px-6 py-4 font-bold text-mech-text">{reg.name}</td>
+                      <td className="px-6 py-4">{reg.semester} - {reg.student_class}</td>
+                      <td className="px-6 py-4">{reg.phone}</td>
+                      <td className="px-6 py-4">
+                        <input
+                          type="text"
+                          value={reg.roll_no || ""}
+                          onChange={(e) => setRegistrations(registrations.map(r => r.id === reg.id ? { ...r, roll_no: e.target.value } : r))}
+                          onBlur={(e) => handleUpdateRollNo(reg.id, e.target.value)}
+                          className="w-24 bg-black border border-mech-border rounded-sm px-3 py-1.5 text-mech-text focus:outline-none focus:border-mech-accent font-mono text-sm uppercase"
+                          placeholder="e.g. 1"
+                        />
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <label className="inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={!!reg.attended}
+                            onChange={() => handleToggleAttendance(reg.id, !!reg.attended)}
+                            className="hidden"
+                          />
+                          <div className={`w-6 h-6 border rounded-sm flex items-center justify-center transition-colors ${
+                            reg.attended ? 'bg-mech-accent border-mech-accent text-black' : 'border-mech-muted text-transparent'
+                          }`}>
+                            <Check className="w-4 h-4" />
+                          </div>
+                        </label>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-1">
@@ -576,7 +727,17 @@ export default function AdminDashboard() {
                     className="w-full bg-black border border-mech-border rounded-sm px-4 py-2 text-mech-text focus:outline-none focus:border-mech-accent font-mono text-sm"
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-xs font-mono text-mech-muted uppercase tracking-wider">Date</label>
+                    <input
+                      type="text"
+                      value={newEvent.date}
+                      onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })}
+                      className="w-full bg-black border border-mech-border rounded-sm px-4 py-2 text-mech-text focus:outline-none focus:border-mech-accent font-mono text-sm"
+                      placeholder="e.g. 2026-04-10 or TBD"
+                    />
+                  </div>
                   <div className="space-y-2">
                     <label className="text-xs font-mono text-mech-muted uppercase tracking-wider">Time</label>
                     <input
@@ -627,8 +788,8 @@ export default function AdminDashboard() {
                   if (editingEventId === event.id) {
                     return (
                       <form key={event.id} onSubmit={(e) => handleEditEventSubmit(e, event.id)} className="p-4 border border-mech-accent bg-black rounded-sm space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="space-y-1">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div className="space-y-1 md:col-span-3">
                             <label className="text-xs font-mono text-mech-muted uppercase">Title</label>
                             <input
                               type="text"
@@ -657,6 +818,15 @@ export default function AdminDashboard() {
                               min="0"
                               value={editEventData.fee === undefined ? "" : editEventData.fee}
                               onChange={(e) => setEditEventData({ ...editEventData, fee: e.target.value === "" ? 0 : parseInt(e.target.value) })}
+                              className="w-full bg-black border border-mech-border rounded-sm px-3 py-1.5 text-mech-text focus:outline-none focus:border-mech-accent font-mono text-sm"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-xs font-mono text-mech-muted uppercase">Date</label>
+                            <input
+                              type="text"
+                              value={editEventData.date || ""}
+                              onChange={(e) => setEditEventData({ ...editEventData, date: e.target.value })}
                               className="w-full bg-black border border-mech-border rounded-sm px-3 py-1.5 text-mech-text focus:outline-none focus:border-mech-accent font-mono text-sm"
                             />
                           </div>
@@ -705,7 +875,7 @@ export default function AdminDashboard() {
                       <div className="flex items-center space-x-3 mt-1">
                         <span className="text-xs font-mono text-mech-muted uppercase">{event.type}</span>
                         <span className="text-[10px] font-mono text-mech-muted uppercase bg-black px-2 py-0.5 rounded-sm border border-mech-border">
-                          {event.time || "TBD"} • {event.venue || "TBD"}
+                          {event.date || "TBD"} • {event.time || "TBD"} • {event.venue || "TBD"}
                         </span>
                         <span className="text-[10px] font-mono text-mech-accent bg-mech-accent/10 px-2 py-0.5 rounded-sm border border-mech-accent/20">
                           {regCount} {regCount === 1 ? 'Registration' : 'Registrations'}

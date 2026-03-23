@@ -10,6 +10,7 @@ interface Event {
   fee: number;
   time?: string;
   venue?: string;
+  date?: string;
 }
 
 export default function Registration() {
@@ -36,10 +37,10 @@ export default function Registration() {
     async function fetchEvents() {
       if (!isSupabaseConfigured) {
         setEvents([
-          { id: "1", title: "Robo Wars", type: "technical", fee: 500, time: "10:00 AM", venue: "Main Arena" },
-          { id: "2", title: "CAD Modeling", type: "technical", fee: 200, time: "TBD", venue: "Computer Lab 1" },
-          { id: "3", title: "Treasure Hunt", type: "non-technical", fee: 150, time: "TBD", venue: "TBD" },
-          { id: "4", title: "Gaming Tournament", type: "non-technical", fee: 300, time: "TBD", venue: "TBD" },
+          { id: "1", title: "Robo Wars", type: "technical", fee: 500, time: "10:00 AM", venue: "Main Arena", date: "2026-04-10" },
+          { id: "2", title: "CAD Modeling", type: "technical", fee: 200, time: "TBD", venue: "Computer Lab 1", date: "TBD" },
+          { id: "3", title: "Treasure Hunt", type: "non-technical", fee: 150, time: "TBD", venue: "TBD", date: "TBD" },
+          { id: "4", title: "Gaming Tournament", type: "non-technical", fee: 300, time: "TBD", venue: "TBD", date: "TBD" },
         ]);
         setLoading(false);
         return;
@@ -48,7 +49,7 @@ export default function Registration() {
       try {
         const { data, error } = await supabase
           .from("events")
-          .select("id, title, type, fee, time, venue")
+          .select("id, title, type, fee, time, venue, date")
           .order("title");
 
         if (error) throw error;

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { supabase, isSupabaseConfigured } from "../lib/supabase";
 import { motion } from "motion/react";
-import { AlertCircle, Zap, Clock, MapPin } from "lucide-react";
+import { AlertCircle, Zap, Clock, MapPin, Calendar } from "lucide-react";
 
 interface Event {
   id: string;
@@ -12,6 +12,7 @@ interface Event {
   fee: number;
   time?: string;
   venue?: string;
+  date?: string;
 }
 
 export default function Events() {
@@ -37,6 +38,7 @@ export default function Events() {
             fee: 500,
             time: "10:00 AM",
             venue: "Main Arena",
+            date: "2026-04-10",
           },
           {
             id: "2",
@@ -46,6 +48,7 @@ export default function Events() {
             fee: 200,
             time: "TBD",
             venue: "Computer Lab 1",
+            date: "TBD",
           },
           {
             id: "3",
@@ -55,6 +58,7 @@ export default function Events() {
             fee: 150,
             time: "TBD",
             venue: "TBD",
+            date: "TBD",
           },
           {
             id: "4",
@@ -64,6 +68,7 @@ export default function Events() {
             fee: 300,
             time: "TBD",
             venue: "TBD",
+            date: "TBD",
           },
         ].filter((e) => e.type === type));
         setLoading(false);
@@ -143,6 +148,10 @@ export default function Events() {
                 {event.description}
               </p>
               <div className="flex flex-col space-y-2 mb-6 relative z-10 font-mono text-sm text-mech-muted">
+                <div className="flex items-center space-x-2">
+                  <Calendar className="w-4 h-4 text-mech-accent" />
+                  <span className="uppercase">{event.date || "TBD"}</span>
+                </div>
                 <div className="flex items-center space-x-2">
                   <Clock className="w-4 h-4 text-mech-accent" />
                   <span className="uppercase">{event.time || "TBD"}</span>
