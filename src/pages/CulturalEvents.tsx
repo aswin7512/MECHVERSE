@@ -1,50 +1,201 @@
+import { useState, FormEvent } from "react";
 import { motion } from "motion/react";
-import { Music, AlertTriangle, ArrowRight } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Music, Mic, Palette, Star, ArrowRight, CheckCircle2, AlertCircle } from "lucide-react";
+import { supabase, isSupabaseConfigured } from "../lib/supabase";
 
 export default function CulturalEvents() {
+  const [formData, setFormData] = useState({
+    name: "",
+    department: "",
+    semester: "S1",
+    mobile_number: "",
+    event_type: "",
+  });
+  
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setError(null);
+
+    // Mock mode successful submission
+    if (!isSupabaseConfigured) {
+      setTimeout(() => {
+        setIsSubmitting(false);
+        setIsSuccess(true);
+      }, 1000);
+      return;
+    }
+
+    try {
+      const { error: submitError } = await supabase
+        .from("cultural_registrations")
+        .insert([formData]);
+
+      if (submitError) throw submitError;
+
+      setIsSuccess(true);
+    } catch (err: any) {
+      setError(err.message || "An error occurred during registration. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto space-y-12">
       <div className="text-center">
         <h1 className="text-5xl md:text-7xl font-black uppercase tracking-tighter text-glow mb-4">
-          Cultural Events
+          Cultural Stage
         </h1>
         <p className="text-mech-muted font-mono tracking-widest uppercase">
-          Beyond the Machinery
+          Unleash Your Inner Artist
         </p>
       </div>
 
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="panel p-8 md:p-12 text-center space-y-8 relative overflow-hidden"
+        initial={{ opacity: 0, y: 20, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
+        className="p-8 md:p-12 relative overflow-hidden border border-mech-accent/40 shadow-[0_0_40px_-10px_rgba(var(--mech-accent),0.5)] shadow-mech-accent/20 bg-black/80 backdrop-blur-md rounded-md hover:border-mech-accent/60 hover:shadow-mech-accent/40 transition-all duration-500"
       >
-        <div className="absolute top-0 right-0 p-8 opacity-5">
-          <Music className="w-48 h-48 text-mech-accent" />
+        <div className="absolute top-0 right-0 p-8 opacity-10 flex space-x-6 pointer-events-none">
+          <Music className="w-24 h-24 text-mech-accent transform rotate-12 drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] animate-pulse" />
+          <Palette className="w-16 h-16 text-mech-accent transform -rotate-12 mt-12 drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]" />
+          <Mic className="w-20 h-20 text-mech-accent transform rotate-6 drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]" />
         </div>
 
-        <div className="relative z-10 flex flex-col items-center space-y-6">
-          <div className="w-20 h-20 bg-mech-accent/10 rounded-full flex items-center justify-center border border-mech-accent/30">
-            <AlertTriangle className="w-10 h-10 text-mech-accent" />
-          </div>
-          
-          <h2 className="text-2xl md:text-3xl font-bold uppercase tracking-wider text-mech-text">
-            Cultural Event Proposals
-          </h2>
-          
-          <p className="text-mech-muted font-mono max-w-2xl leading-relaxed text-lg">
-            We are currently accepting proposals for cultural events and performances. 
-            If you or your team wish to carry out any cultural events during MechVerse, 
-            please establish communications with our event coordinators for approval and scheduling.
-          </p>
+        <div className="relative z-10 max-w-2xl mx-auto">
+          {!isSupabaseConfigured && !isSuccess && (
+            <div className="mb-8 p-4 bg-yellow-500/10 border border-yellow-500/50 rounded-sm flex items-start space-x-3 text-yellow-500">
+              <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+              <div className="font-mono text-sm leading-relaxed">
+                <strong className="uppercase block mb-1">Mock Mode Active</strong>
+                Supabase is not configured. Registrations will succeed visually but won't be saved to a database.
+              </div>
+            </div>
+          )}
 
-          <Link
-            to="/contact"
-            className="inline-flex items-center space-x-2 px-8 py-4 bg-mech-accent text-black font-bold uppercase tracking-widest hover:bg-mech-accent-hover transition-colors rounded-sm mt-4"
-          >
-            <span>Contact Admins</span>
-            <ArrowRight className="w-5 h-5" />
-          </Link>
+          {isSuccess ? (
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="text-center py-12 space-y-6"
+            >
+              <div className="w-24 h-24 bg-mech-accent/20 rounded-full flex items-center justify-center mx-auto border border-mech-accent/50">
+                <CheckCircle2 className="w-12 h-12 text-mech-accent" />
+              </div>
+              <h2 className="text-3xl font-black uppercase tracking-wider text-glow">
+                Registration Confirmed!
+              </h2>
+              <p className="text-mech-muted font-mono max-w-md mx-auto">
+                Your cultural event registration has been successfully received. We will contact you shortly to confirm your slot.
+              </p>
+              <button
+                onClick={() => {
+                  setFormData({ name: "", department: "", semester: "S1", mobile_number: "", event_type: "Dance" });
+                  setIsSuccess(false);
+                }}
+                className="inline-flex items-center space-x-2 px-8 py-4 border border-mech-accent text-mech-accent font-bold uppercase tracking-widest hover:bg-mech-accent hover:text-black transition-colors rounded-sm mt-8"
+              >
+                <span>Register Another</span>
+                <ArrowRight className="w-5 h-5" />
+              </button>
+            </motion.div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="flex items-center justify-center mb-8">
+                <h2 className="text-2xl font-bold uppercase tracking-wider text-mech-text">
+                  Performer Registration
+                </h2>
+              </div>
+
+              {error && (
+                <div className="p-4 bg-red-500/10 border border-red-500/50 text-red-500 rounded-sm font-mono text-sm">
+                  {error}
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <label className="text-xs font-mono text-mech-muted uppercase tracking-wider block">Full Name</label>
+                <input
+                  type="text"
+                  required
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full bg-black/50 border border-mech-border rounded-sm px-4 py-3 text-mech-text focus:outline-none focus:border-mech-accent font-mono text-sm uppercase transition-colors"
+                  placeholder="e.g. John Doe"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-xs font-mono text-mech-muted uppercase tracking-wider block">Department</label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.department}
+                    onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                    className="w-full bg-black/50 border border-mech-border rounded-sm px-4 py-3 text-mech-text focus:outline-none focus:border-mech-accent font-mono text-sm uppercase transition-colors"
+                    placeholder="e.g. Mechanical"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="text-xs font-mono text-mech-muted uppercase tracking-wider block">Semester</label>
+                  <select
+                    value={formData.semester}
+                    onChange={(e) => setFormData({ ...formData, semester: e.target.value })}
+                    className="w-full bg-black/50 border border-mech-border rounded-sm px-4 py-3 text-mech-text focus:outline-none focus:border-mech-accent font-mono text-sm uppercase transition-colors appearance-none"
+                  >
+                    {["S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8"].map(sem => (
+                      <option key={sem} value={sem}>{sem}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-mono text-mech-muted uppercase tracking-wider block">Mobile Number</label>
+                <input
+                  type="tel"
+                  required
+                  pattern="[0-9]{10}"
+                  value={formData.mobile_number}
+                  onChange={(e) => setFormData({ ...formData, mobile_number: e.target.value.replace(/\D/g, '').slice(0, 10) })}
+                  className="w-full bg-black/50 border border-mech-border rounded-sm px-4 py-3 text-mech-text focus:outline-none focus:border-mech-accent font-mono text-sm transition-colors"
+                  placeholder="10-digit mobile number"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-mono text-mech-muted uppercase tracking-wider block">Type of Event (Performance)</label>
+                <input
+                  type="text"
+                  required
+                  value={formData.event_type}
+                  onChange={(e) => setFormData({ ...formData, event_type: e.target.value })}
+                  className="w-full bg-black/50 border border-mech-border rounded-sm px-4 py-3 text-mech-text focus:outline-none focus:border-mech-accent font-mono text-sm uppercase transition-colors"
+                  placeholder="e.g. Dance, Singing, Standup Comedy"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full py-4 bg-mech-accent text-black font-bold uppercase tracking-widest hover:bg-mech-accent-hover transition-colors rounded-sm mt-8 disabled:opacity-50 flex justify-center items-center"
+              >
+                {isSubmitting ? (
+                  <div className="w-6 h-6 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  "Submit Registration"
+                )}
+              </button>
+            </form>
+          )}
         </div>
       </motion.div>
     </div>
