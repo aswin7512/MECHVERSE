@@ -6,6 +6,7 @@ import { LogOut, Plus, Users, Calendar, AlertCircle, Trash2, Check, X, Download,
 interface Event {
   id: string;
   title: string;
+  description?: string;
   type: string;
   fee: number;
   time?: string;
@@ -797,6 +798,15 @@ export default function AdminDashboard() {
                               value={editEventData.title || ""}
                               onChange={(e) => setEditEventData({ ...editEventData, title: e.target.value })}
                               className="w-full bg-black border border-mech-border rounded-sm px-3 py-1.5 text-mech-text focus:outline-none focus:border-mech-accent font-mono text-sm"
+                            />
+                          </div>
+                          <div className="space-y-1 md:col-span-3">
+                            <label className="text-xs font-mono text-mech-muted uppercase">Description</label>
+                            <textarea
+                              required
+                              value={editEventData.description || ""}
+                              onChange={(e) => setEditEventData({ ...editEventData, description: e.target.value })}
+                              className="w-full bg-black border border-mech-border rounded-sm px-3 py-1.5 text-mech-text focus:outline-none focus:border-mech-accent font-mono text-sm h-20 resize-none"
                             />
                           </div>
                           <div className="space-y-1">
