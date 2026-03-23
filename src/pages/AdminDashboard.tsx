@@ -198,6 +198,18 @@ export default function AdminDashboard() {
       : registrations.filter(r => (r.events || []).includes(selectedEventFilter));
       
     const attendedRegs = dataToExport.filter(r => r.attended);
+    
+    // Sort by semester, then by class to group like-minded attendees together
+    attendedRegs.sort((a, b) => {
+      const semA = a.semester || "";
+      const semB = b.semester || "";
+      if (semA !== semB) return semA.localeCompare(semB);
+      
+      const classA = a.student_class || "";
+      const classB = b.student_class || "";
+      return classA.localeCompare(classB);
+    });
+
     const headers = ["Name", "Semester", "Class", "Roll No"];
     
     const csvData = attendedRegs.map(reg => {
