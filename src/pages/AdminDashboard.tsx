@@ -1,13 +1,15 @@
 import { useState, useEffect, FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase, isSupabaseConfigured } from "../lib/supabase";
-import { LogOut, Plus, Users, Calendar, AlertCircle, Trash2, Check, X, Download } from "lucide-react";
+import { LogOut, Plus, Users, Calendar, AlertCircle, Trash2, Check, X, Download, Edit2 } from "lucide-react";
 
 interface Event {
   id: string;
   title: string;
   type: string;
   fee: number;
+  time?: string;
+  venue?: string;
 }
 
 interface Registration {
@@ -61,7 +63,14 @@ export default function AdminDashboard() {
     description: "",
     type: "technical",
     fee: 0,
+    time: "TBD",
+    venue: "TBD",
   });
+
+  const [editingEventId, setEditingEventId] = useState<string | null>(null);
+  const [editEventData, setEditEventData] = useState<Partial<Event>>({});
+
+  const [editingRegistration, setEditingRegistration] = useState<Registration | null>(null);
 
   const fetchData = async () => {
     setLoading(true);
@@ -84,8 +93,8 @@ export default function AdminDashboard() {
         },
       ]);
       setEvents([
-        { id: "1", title: "Robo Wars", type: "technical", fee: 500 },
-        { id: "2", title: "CAD Modeling", type: "technical", fee: 200 },
+        { id: "1", title: "Robo Wars", type: "technical", fee: 500, time: "10:00 AM", venue: "Main Arena" },
+        { id: "2", title: "CAD Modeling", type: "technical", fee: 200, time: "TBD", venue: "Computer Lab 1" },
       ]);
       setLoading(false);
       return;
@@ -198,7 +207,7 @@ export default function AdminDashboard() {
       const { error } = await supabase.from("events").insert([newEvent]);
       if (error) throw error;
       
-      setNewEvent({ title: "", description: "", type: "technical", fee: 0 });
+      setNewEvent({ title: "", description: "", type: "technical", fee: 0, time: "TBD", venue: "TBD" });
       fetchData();
       setAlertDialog({ isOpen: true, message: "Event added successfully" });
     } catch (err: any) {
@@ -226,6 +235,57 @@ export default function AdminDashboard() {
         }
       }
     });
+  };
+
+  const startEditEvent = (event: Event) => {
+    setEditingEventId(event.id);
+    setEditEventData(event);
+  };
+
+  const handleEditEventSubmit = async (e: FormEvent, id: string) => {
+    e.preventDefault();
+    if (!isSupabaseConfigured) {
+      setEvents(events.map(ev => ev.id === id ? { ...ev, ...editEventData } as Event : ev));
+      setEditingEventId(null);
+      setAlertDialog({ isOpen: true, message: "Event updated successfully (Mock Mode)" });
+      return;
+    }
+    try {
+      const { error } = await supabase.from("events").update(editEventData).eq("id", id);
+      if (error) throw error;
+      setEditingEventId(null);
+      fetchData();
+      setAlertDialog({ isOpen: true, message: "Event updated successfully" });
+    } catch (err: any) {
+      setAlertDialog({ isOpen: true, message: "Error updating event: " + err.message });
+    }
+  };
+
+  const handleEditRegistrationSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!editingRegistration) return;
+    
+    if (!isSupabaseConfigured) {
+      setRegistrations(registrations.map(r => r.id === editingRegistration.id ? editingRegistration : r));
+      setEditingRegistration(null);
+      setAlertDialog({ isOpen: true, message: "Registration updated successfully (Mock Mode)" });
+      return;
+    }
+    try {
+      const { id, created_at, ...dataToUpdate } = editingRegistration;
+      const { error } = await supabase.from("registrations").update(dataToUpdate).eq("id", id);
+      if (error) throw error;
+      
+      setEditingRegistration(null);
+      fetchData();
+      setAlertDialog({ isOpen: true, message: "Registration updated successfully" });
+    } catch (err: any) {
+      setAlertDialog({ isOpen: true, message: "Error updating registration: " + err.message });
+    }
+  };
+
+  const startEditRegistration = (reg: Registration) => {
+    setEditingRegistration(reg);
   };
 
   const handleDeleteRegistration = (id: string) => {
@@ -418,6 +478,13 @@ export default function AdminDashboard() {
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end space-x-2">
+                          <button
+                            onClick={() => startEditRegistration(reg)}
+                            className="p-1.5 bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-white rounded-sm transition-colors mr-2"
+                            title="Edit"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
                           {reg.status !== 'accepted' && (
                             <button
                               onClick={() => handleUpdateRegistrationStatus(reg.id, 'accepted')}
@@ -502,6 +569,28 @@ export default function AdminDashboard() {
                     className="w-full bg-black border border-mech-border rounded-sm px-4 py-2 text-mech-text focus:outline-none focus:border-mech-accent font-mono text-sm"
                   />
                 </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-xs font-mono text-mech-muted uppercase tracking-wider">Time</label>
+                    <input
+                      type="text"
+                      value={newEvent.time}
+                      onChange={(e) => setNewEvent({ ...newEvent, time: e.target.value })}
+                      className="w-full bg-black border border-mech-border rounded-sm px-4 py-2 text-mech-text focus:outline-none focus:border-mech-accent font-mono text-sm"
+                      placeholder="e.g. 10:00 AM or TBD"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-mono text-mech-muted uppercase tracking-wider">Venue</label>
+                    <input
+                      type="text"
+                      value={newEvent.venue}
+                      onChange={(e) => setNewEvent({ ...newEvent, venue: e.target.value })}
+                      className="w-full bg-black border border-mech-border rounded-sm px-4 py-2 text-mech-text focus:outline-none focus:border-mech-accent font-mono text-sm"
+                      placeholder="e.g. Main Hall or TBD"
+                    />
+                  </div>
+                </div>
                 <button
                   type="submit"
                   className="w-full py-3 bg-mech-accent text-black font-bold uppercase tracking-widest hover:bg-mech-accent-hover transition-colors rounded-sm mt-4"
@@ -528,12 +617,89 @@ export default function AdminDashboard() {
               <div className="space-y-4">
                 {events.map((event) => {
                   const regCount = registrations.filter(r => (r.events || []).includes(event.id)).length;
+                  if (editingEventId === event.id) {
+                    return (
+                      <form key={event.id} onSubmit={(e) => handleEditEventSubmit(e, event.id)} className="p-4 border border-mech-accent bg-black rounded-sm space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-1">
+                            <label className="text-xs font-mono text-mech-muted uppercase">Title</label>
+                            <input
+                              type="text"
+                              required
+                              value={editEventData.title || ""}
+                              onChange={(e) => setEditEventData({ ...editEventData, title: e.target.value })}
+                              className="w-full bg-black border border-mech-border rounded-sm px-3 py-1.5 text-mech-text focus:outline-none focus:border-mech-accent font-mono text-sm"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-xs font-mono text-mech-muted uppercase">Type</label>
+                            <select
+                              value={editEventData.type || "technical"}
+                              onChange={(e) => setEditEventData({ ...editEventData, type: e.target.value })}
+                              className="w-full bg-black border border-mech-border rounded-sm px-3 py-1.5 text-mech-text focus:outline-none focus:border-mech-accent font-mono text-sm"
+                            >
+                              <option value="technical">Technical</option>
+                              <option value="non-technical">Non-Technical</option>
+                            </select>
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-xs font-mono text-mech-muted uppercase">Fee (₹)</label>
+                            <input
+                              type="number"
+                              required
+                              min="0"
+                              value={editEventData.fee === undefined ? "" : editEventData.fee}
+                              onChange={(e) => setEditEventData({ ...editEventData, fee: e.target.value === "" ? 0 : parseInt(e.target.value) })}
+                              className="w-full bg-black border border-mech-border rounded-sm px-3 py-1.5 text-mech-text focus:outline-none focus:border-mech-accent font-mono text-sm"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-xs font-mono text-mech-muted uppercase">Time</label>
+                            <input
+                              type="text"
+                              value={editEventData.time || ""}
+                              onChange={(e) => setEditEventData({ ...editEventData, time: e.target.value })}
+                              className="w-full bg-black border border-mech-border rounded-sm px-3 py-1.5 text-mech-text focus:outline-none focus:border-mech-accent font-mono text-sm"
+                            />
+                          </div>
+                          <div className="space-y-1 md:col-span-2">
+                            <label className="text-xs font-mono text-mech-muted uppercase">Venue</label>
+                            <input
+                              type="text"
+                              value={editEventData.venue || ""}
+                              onChange={(e) => setEditEventData({ ...editEventData, venue: e.target.value })}
+                              className="w-full bg-black border border-mech-border rounded-sm px-3 py-1.5 text-mech-text focus:outline-none focus:border-mech-accent font-mono text-sm"
+                            />
+                          </div>
+                        </div>
+                        <div className="flex justify-end space-x-2 pt-2 border-t border-mech-border">
+                          <button
+                            type="button"
+                            onClick={() => setEditingEventId(null)}
+                            className="px-4 py-1.5 border border-mech-border text-mech-muted hover:text-mech-text hover:border-mech-muted font-mono uppercase text-xs transition-colors rounded-sm"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="submit"
+                            className="px-4 py-1.5 bg-mech-accent text-black font-bold uppercase tracking-wider hover:bg-mech-accent-hover transition-colors rounded-sm text-xs"
+                          >
+                            Save
+                          </button>
+                        </div>
+                      </form>
+                    );
+                  }
+
                   return (
-                  <div key={event.id} className="flex items-center justify-between p-4 border border-mech-border bg-black rounded-sm group">
+                  <div key={event.id} className="flex items-center justify-between p-4 border border-mech-border bg-black rounded-sm group hover:border-mech-muted transition-colors">
                     <div>
                       <h3 className="font-bold uppercase tracking-wider">{event.title}</h3>
                       <div className="flex items-center space-x-3 mt-1">
                         <span className="text-xs font-mono text-mech-muted uppercase">{event.type}</span>
+                        <span className="text-[10px] font-mono text-mech-muted uppercase bg-black px-2 py-0.5 rounded-sm border border-mech-border">
+                          {event.time || "TBD"} • {event.venue || "TBD"}
+                        </span>
                         <span className="text-[10px] font-mono text-mech-accent bg-mech-accent/10 px-2 py-0.5 rounded-sm border border-mech-accent/20">
                           {regCount} {regCount === 1 ? 'Registration' : 'Registrations'}
                         </span>
@@ -541,13 +707,22 @@ export default function AdminDashboard() {
                     </div>
                     <div className="flex items-center space-x-4">
                       <span className="font-mono text-mech-accent font-bold">₹{event.fee}</span>
-                      <button
-                        onClick={() => handleDeleteEvent(event.id)}
-                        className="p-1.5 bg-mech-muted/10 text-mech-muted hover:bg-red-500 hover:text-black rounded-sm transition-colors opacity-0 group-hover:opacity-100"
-                        title="Delete Event"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center space-x-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={() => startEditEvent(event)}
+                          className="p-1.5 bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-white rounded-sm transition-colors"
+                          title="Edit Event"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteEvent(event.id)}
+                          className="p-1.5 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-black rounded-sm transition-colors"
+                          title="Delete Event"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 )})}
@@ -560,7 +735,7 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* Confirmation Dialog */}
+      {/* Confirm Dialog */}
       {confirmDialog.isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
           <div className="bg-black border border-mech-border p-6 rounded-sm max-w-md w-full mx-4 shadow-[0_0_30px_rgba(255,255,255,0.1)]">
@@ -609,6 +784,168 @@ export default function AdminDashboard() {
                 OK
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Registration Modal */}
+      {editingRegistration && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 overflow-y-auto">
+          <div className="bg-black border border-mech-border p-6 rounded-sm max-w-2xl w-full mx-auto my-8 shadow-[0_0_30px_rgba(255,255,255,0.1)]">
+            <div className="flex justify-between items-center mb-6 border-b border-mech-border pb-4">
+              <h3 className="text-xl font-bold uppercase tracking-wider text-mech-accent">
+                Edit Registration
+              </h3>
+              <button
+                onClick={() => setEditingRegistration(null)}
+                className="text-mech-muted hover:text-red-500 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <form onSubmit={handleEditRegistrationSubmit} className="space-y-4 max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-mono text-mech-muted uppercase">Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={editingRegistration.name}
+                    onChange={(e) => setEditingRegistration({ ...editingRegistration, name: e.target.value })}
+                    className="w-full bg-black border border-mech-border rounded-sm px-3 py-2 text-mech-text focus:outline-none focus:border-mech-accent font-mono text-sm"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-mono text-mech-muted uppercase">College</label>
+                  <input
+                    type="text"
+                    required
+                    value={editingRegistration.college}
+                    onChange={(e) => setEditingRegistration({ ...editingRegistration, college: e.target.value })}
+                    className="w-full bg-black border border-mech-border rounded-sm px-3 py-2 text-mech-text focus:outline-none focus:border-mech-accent font-mono text-sm"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-mono text-mech-muted uppercase">Class</label>
+                  <input
+                    type="text"
+                    required
+                    value={editingRegistration.student_class}
+                    onChange={(e) => setEditingRegistration({ ...editingRegistration, student_class: e.target.value })}
+                    className="w-full bg-black border border-mech-border rounded-sm px-3 py-2 text-mech-text focus:outline-none focus:border-mech-accent font-mono text-sm"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-mono text-mech-muted uppercase">Semester</label>
+                  <input
+                    type="text"
+                    required
+                    value={editingRegistration.semester}
+                    onChange={(e) => setEditingRegistration({ ...editingRegistration, semester: e.target.value })}
+                    className="w-full bg-black border border-mech-border rounded-sm px-3 py-2 text-mech-text focus:outline-none focus:border-mech-accent font-mono text-sm"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-mono text-mech-muted uppercase">KTU ID</label>
+                  <input
+                    type="text"
+                    required
+                    value={editingRegistration.ktu_id}
+                    onChange={(e) => setEditingRegistration({ ...editingRegistration, ktu_id: e.target.value })}
+                    className="w-full bg-black border border-mech-border rounded-sm px-3 py-2 text-mech-text focus:outline-none focus:border-mech-accent font-mono text-sm uppercase"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-mono text-mech-muted uppercase">Phone</label>
+                  <input
+                    type="text"
+                    required
+                    value={editingRegistration.phone}
+                    onChange={(e) => setEditingRegistration({ ...editingRegistration, phone: e.target.value })}
+                    className="w-full bg-black border border-mech-border rounded-sm px-3 py-2 text-mech-text focus:outline-none focus:border-mech-accent font-mono text-sm"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-mono text-mech-muted uppercase">Email</label>
+                  <input
+                    type="email"
+                    required
+                    value={editingRegistration.email}
+                    onChange={(e) => setEditingRegistration({ ...editingRegistration, email: e.target.value })}
+                    className="w-full bg-black border border-mech-border rounded-sm px-3 py-2 text-mech-text focus:outline-none focus:border-mech-accent font-mono text-sm"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-mono text-mech-muted uppercase">Total Amount (₹)</label>
+                  <input
+                    type="number"
+                    required
+                    min="0"
+                    value={editingRegistration.total_amount}
+                    onChange={(e) => setEditingRegistration({ ...editingRegistration, total_amount: parseInt(e.target.value) || 0 })}
+                    className="w-full bg-black border border-mech-border rounded-sm px-3 py-2 text-mech-text focus:outline-none focus:border-mech-accent font-mono text-sm"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-mono text-mech-muted uppercase">Transaction ID</label>
+                  <input
+                    type="text"
+                    value={editingRegistration.transaction_id || ""}
+                    onChange={(e) => setEditingRegistration({ ...editingRegistration, transaction_id: e.target.value })}
+                    className="w-full bg-black border border-mech-border rounded-sm px-3 py-2 text-mech-text focus:outline-none focus:border-mech-accent font-mono text-sm uppercase"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-mono text-mech-muted uppercase">Status</label>
+                  <select
+                    value={editingRegistration.status || "pending"}
+                    onChange={(e) => setEditingRegistration({ ...editingRegistration, status: e.target.value as 'pending' | 'accepted' | 'rejected' })}
+                    className="w-full bg-black border border-mech-border rounded-sm px-3 py-2 text-mech-text focus:outline-none focus:border-mech-accent font-mono text-sm uppercase tracking-wider"
+                  >
+                    <option value="pending">Pending</option>
+                    <option value="accepted">Accepted</option>
+                    <option value="rejected">Rejected</option>
+                  </select>
+                </div>
+              </div>
+              <div className="space-y-2 pt-2">
+                <label className="text-xs font-mono text-mech-muted uppercase">Selected Events</label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  {events.map((event) => (
+                    <label key={event.id} className="flex items-center space-x-2 p-2 border border-mech-border rounded-sm bg-black hover:border-mech-accent cursor-pointer transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={(editingRegistration.events || []).includes(event.id)}
+                        onChange={(e) => {
+                          const currentEvents = editingRegistration.events || [];
+                          const newEvents = e.target.checked
+                            ? [...currentEvents, event.id]
+                            : currentEvents.filter(id => id !== event.id);
+                          setEditingRegistration({ ...editingRegistration, events: newEvents });
+                        }}
+                        className="accent-mech-accent"
+                      />
+                      <span className="text-xs font-mono uppercase truncate">{event.title}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div className="flex justify-end space-x-4 pt-6 border-t border-mech-border">
+                <button
+                  type="button"
+                  onClick={() => setEditingRegistration(null)}
+                  className="px-6 py-2 border border-mech-border text-mech-muted hover:text-mech-text hover:border-mech-muted font-mono uppercase text-sm transition-colors rounded-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2 bg-mech-accent text-black font-bold uppercase tracking-wider hover:bg-mech-accent-hover transition-colors rounded-sm"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

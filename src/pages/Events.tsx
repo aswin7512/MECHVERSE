@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { supabase, isSupabaseConfigured } from "../lib/supabase";
 import { motion } from "motion/react";
-import { AlertCircle, Zap } from "lucide-react";
+import { AlertCircle, Zap, Clock, MapPin } from "lucide-react";
 
 interface Event {
   id: string;
@@ -10,6 +10,8 @@ interface Event {
   description: string;
   type: string;
   fee: number;
+  time?: string;
+  venue?: string;
 }
 
 export default function Events() {
@@ -33,6 +35,8 @@ export default function Events() {
             description: "Build and battle your own combat robots in the arena.",
             type: "technical",
             fee: 500,
+            time: "10:00 AM",
+            venue: "Main Arena",
           },
           {
             id: "2",
@@ -40,6 +44,8 @@ export default function Events() {
             description: "Design complex 3D models using industry-standard CAD software.",
             type: "technical",
             fee: 200,
+            time: "TBD",
+            venue: "Computer Lab 1",
           },
           {
             id: "3",
@@ -47,6 +53,8 @@ export default function Events() {
             description: "Solve mechanical puzzles to find the hidden treasure.",
             type: "non-technical",
             fee: 150,
+            time: "TBD",
+            venue: "TBD",
           },
           {
             id: "4",
@@ -54,6 +62,8 @@ export default function Events() {
             description: "Compete in popular multiplayer games.",
             type: "non-technical",
             fee: 300,
+            time: "TBD",
+            venue: "TBD",
           },
         ].filter((e) => e.type === type));
         setLoading(false);
@@ -129,9 +139,19 @@ export default function Events() {
               <h3 className="text-2xl font-bold uppercase tracking-wider mb-2 text-mech-accent relative z-10">
                 {event.title}
               </h3>
-              <p className="text-mech-muted font-mono text-sm mb-6 flex-grow relative z-10">
+              <p className="text-mech-muted font-mono text-sm mb-4 flex-grow relative z-10">
                 {event.description}
               </p>
+              <div className="flex flex-col space-y-2 mb-6 relative z-10 font-mono text-sm text-mech-muted">
+                <div className="flex items-center space-x-2">
+                  <Clock className="w-4 h-4 text-mech-accent" />
+                  <span className="uppercase">{event.time || "TBD"}</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <MapPin className="w-4 h-4 text-mech-accent" />
+                  <span className="uppercase">{event.venue || "TBD"}</span>
+                </div>
+              </div>
               <div className="mt-auto pt-4 border-t border-mech-border flex justify-between items-center relative z-10">
                 <span className="font-mono text-xs text-mech-muted uppercase">
                   Registration Fee
