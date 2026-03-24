@@ -77,10 +77,17 @@ export default function Registration() {
     );
   };
 
-  const isEventRegistrationClosed = (eventDate?: string) => {
-    if (!eventDate) return false;
-    const upperDate = eventDate.toUpperCase();
+  const isEventRegistrationClosed = (event?: Event) => {
+    if (!event || !event.date) return false;
+    const upperDate = event.date.toUpperCase();
+    const upperTitle = event.title.toUpperCase();
     const now = new Date();
+    
+    // Technical Workshop: Registration ends March 26 10am
+    if (upperTitle.includes("TECHNICAL WORKSHOP")) {
+      const deadline = new Date("2026-03-26T10:00:00+05:30");
+      return now > deadline;
+    }
     
     // March 25 events: Registration ends March 24 10pm
     if (upperDate.includes("25") && upperDate.includes("MARCH")) {
@@ -111,7 +118,7 @@ export default function Registration() {
 
     const closedSelectedEvents = selectedEvents.filter(id => {
       const event = events.find(e => e.id === id);
-      return isEventRegistrationClosed(event?.date);
+      return isEventRegistrationClosed(event);
     });
 
     if (closedSelectedEvents.length > 0) {
@@ -343,7 +350,7 @@ export default function Registration() {
             ) : (
               <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                 {events.map((event) => {
-                  const isClosed = isEventRegistrationClosed(event.date);
+                  const isClosed = isEventRegistrationClosed(event);
                   const isTechnical = event.type === "technical";
                   const hasSelectedTechnical = selectedEvents.some(
                     (id) => events.find((e) => e.id === id)?.type === "technical"
