@@ -1,7 +1,7 @@
 import { useState, useEffect, FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase, isSupabaseConfigured } from "../lib/supabase";
-import { LogOut, Plus, Users, Calendar, AlertCircle, Trash2, Check, X, Download, Edit2, ClipboardList } from "lucide-react";
+import { LogOut, Plus, Users, Calendar, AlertCircle, Trash2, Check, X, Download, Edit2, ClipboardList, Music } from "lucide-react";
 
 interface Event {
   id: string;
@@ -32,11 +32,23 @@ interface Registration {
   attended?: boolean;
 }
 
+interface CulturalRegistration {
+  id: string;
+  name: string;
+  department: string;
+  semester: string;
+  mobile_number: string;
+  event_type: string;
+  status: 'pending' | 'accepted' | 'rejected';
+  created_at: string;
+}
+
 export default function AdminDashboard() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<"registrations" | "events" | "attendance">("registrations");
+  const [activeTab, setActiveTab] = useState<"registrations" | "events" | "attendance" | "culturals">("registrations");
   const [selectedEventFilter, setSelectedEventFilter] = useState<string>("all");
   const [registrations, setRegistrations] = useState<Registration[]>([]);
+  const [culturalRegistrations, setCulturalRegistrations] = useState<CulturalRegistration[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -101,21 +113,36 @@ export default function AdminDashboard() {
         { id: "1", title: "Robo Wars", type: "technical", fee: 500, time: "10:00 AM", venue: "Main Arena", date: "2026-04-10" },
         { id: "2", title: "CAD Modeling", type: "technical", fee: 200, time: "TBD", venue: "Computer Lab 1", date: "TBD" },
       ]);
+      setCulturalRegistrations([
+        {
+          id: "1",
+          name: "Jane Doe",
+          department: "Computer Science",
+          semester: "S6",
+          mobile_number: "9876543210",
+          event_type: "Dance",
+          status: "pending",
+          created_at: new Date().toISOString()
+        }
+      ]);
       setLoading(false);
       return;
     }
 
     try {
-      const [regRes, evRes] = await Promise.all([
+      const [regRes, evRes, cultRes] = await Promise.all([
         supabase.from("registrations").select("*").order("created_at", { ascending: false }),
         supabase.from("events").select("*").order("created_at", { ascending: false }),
+        supabase.from("cultural_registrations").select("*").order("created_at", { ascending: false }),
       ]);
 
       if (regRes.error) throw regRes.error;
       if (evRes.error) throw evRes.error;
+      if (cultRes.error) throw cultRes.error;
 
       setRegistrations(regRes.data || []);
       setEvents(evRes.data || []);
+      setCulturalRegistrations(cultRes.data || []);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -188,6 +215,30 @@ export default function AdminDashboard() {
     const a = document.createElement("a");
     a.href = url;
     a.download = `events-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+
+  const exportCulturalsCSV = () => {
+    const headers = ["Name", "Department", "Semester", "Mobile Number", "Event", "Status", "Date"];
+    const csvData = culturalRegistrations.map(reg => {
+      return [
+        `"${reg.name}"`,
+        `"${reg.department}"`,
+        `"${reg.semester}"`,
+        `"${reg.mobile_number}"`,
+        `"${reg.event_type}"`,
+        `"${reg.status || 'pending'}"`,
+        `"${new Date(reg.created_at).toLocaleDateString()}"`
+      ].join(",");
+    });
+    
+    const csvString = [headers.join(","), ...csvData].join("\n");
+    const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `culturals-${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
     window.URL.revokeObjectURL(url);
   };
@@ -388,6 +439,42 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleUpdateCulturalStatus = async (id: string, status: 'accepted' | 'rejected') => {
+    if (!isSupabaseConfigured) {
+      setCulturalRegistrations(culturalRegistrations.map(r => r.id === id ? { ...r, status } : r));
+      return;
+    }
+    try {
+      const { error } = await supabase.from("cultural_registrations").update({ status }).eq("id", id);
+      if (error) throw error;
+      fetchData();
+    } catch (err: any) {
+      alert("Error updating status: " + err.message);
+    }
+  };
+
+  const handleDeleteCultural = (id: string) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: "Delete Cultural Registration",
+      message: "Are you sure you want to delete this registration?",
+      onConfirm: async () => {
+        setConfirmDialog(prev => ({ ...prev, isOpen: false }));
+        if (!isSupabaseConfigured) {
+          setCulturalRegistrations(culturalRegistrations.filter(r => r.id !== id));
+          return;
+        }
+        try {
+          const { error } = await supabase.from("cultural_registrations").delete().eq("id", id);
+          if (error) throw error;
+          fetchData();
+        } catch (err: any) {
+          setAlertDialog({ isOpen: true, message: "Error deleting registration: " + err.message });
+        }
+      }
+    });
+  };
+
   const filteredRegistrations = selectedEventFilter === "all"
     ? registrations
     : registrations.filter((r) => (r.events || []).includes(selectedEventFilter));
@@ -454,6 +541,17 @@ export default function AdminDashboard() {
         >
           <ClipboardList className="w-5 h-5" />
           <span>Attendance</span>
+        </button>
+        <button
+          onClick={() => setActiveTab("culturals")}
+          className={`flex items-center space-x-2 px-6 py-3 font-bold uppercase tracking-wider rounded-sm transition-colors ${
+            activeTab === "culturals"
+              ? "bg-mech-accent text-black"
+              : "bg-mech-panel text-mech-muted hover:text-mech-text border border-mech-border"
+          }`}
+        >
+          <Music className="w-5 h-5" />
+          <span>Culturals</span>
         </button>
       </div>
 
@@ -682,6 +780,102 @@ export default function AdminDashboard() {
                             <Check className="w-4 h-4" />
                           </div>
                         </label>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ) : activeTab === "culturals" ? (
+        <div className="panel overflow-hidden">
+          <div className="flex justify-between items-center p-4 border-b border-mech-border bg-black/30">
+            <div className="flex items-center space-x-3">
+              <h2 className="text-lg font-bold uppercase tracking-wider text-mech-accent">
+                Cultural Registrations
+              </h2>
+              <span className="px-2 py-0.5 bg-mech-accent/10 text-mech-accent text-xs font-mono rounded-sm border border-mech-accent/20">
+                {culturalRegistrations.length} {culturalRegistrations.length === 1 ? 'Entry' : 'Entries'}
+              </span>
+            </div>
+            <button
+              onClick={exportCulturalsCSV}
+              className="flex items-center space-x-2 px-4 py-2 bg-mech-panel text-mech-text hover:bg-mech-accent hover:text-black transition-colors rounded-sm font-mono text-xs uppercase tracking-wider"
+            >
+              <Download className="w-4 h-4" />
+              <span>Export CSV</span>
+            </button>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left font-mono text-sm">
+              <thead className="bg-black/50 text-mech-muted uppercase text-xs">
+                <tr>
+                  <th className="px-6 py-4 border-b border-mech-border">Name</th>
+                  <th className="px-6 py-4 border-b border-mech-border">Department</th>
+                  <th className="px-6 py-4 border-b border-mech-border">Semester</th>
+                  <th className="px-6 py-4 border-b border-mech-border">Contact</th>
+                  <th className="px-6 py-4 border-b border-mech-border">Event</th>
+                  <th className="px-6 py-4 border-b border-mech-border">Status</th>
+                  <th className="px-6 py-4 border-b border-mech-border">Date</th>
+                  <th className="px-6 py-4 border-b border-mech-border text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-mech-border">
+                {culturalRegistrations.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="px-6 py-8 text-center text-mech-muted">
+                      No cultural registrations found.
+                    </td>
+                  </tr>
+                ) : (
+                  culturalRegistrations.map((reg) => (
+                    <tr key={reg.id} className="hover:bg-white/5 transition-colors">
+                      <td className="px-6 py-4 font-bold text-mech-text">{reg.name}</td>
+                      <td className="px-6 py-4">{reg.department}</td>
+                      <td className="px-6 py-4">{reg.semester}</td>
+                      <td className="px-6 py-4">{reg.mobile_number}</td>
+                      <td className="px-6 py-4 font-bold text-mech-accent uppercase">{reg.event_type}</td>
+                      <td className="px-6 py-4">
+                        <span className={`px-2 py-0.5 text-[10px] uppercase tracking-wider rounded-sm ${
+                          reg.status === 'accepted' ? 'bg-green-500/10 text-green-500 border border-green-500/20' :
+                          reg.status === 'rejected' ? 'bg-red-500/10 text-red-500 border border-red-500/20' :
+                          'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20'
+                        }`}>
+                          {reg.status || 'pending'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-xs text-mech-muted">
+                        {new Date(reg.created_at).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex items-center justify-end space-x-2">
+                          {reg.status !== 'accepted' && (
+                            <button
+                              onClick={() => handleUpdateCulturalStatus(reg.id, 'accepted')}
+                              className="p-1.5 bg-green-500/10 text-green-500 hover:bg-green-500 hover:text-black rounded-sm transition-colors"
+                              title="Accept"
+                            >
+                              <Check className="w-4 h-4" />
+                            </button>
+                          )}
+                          {reg.status !== 'rejected' && (
+                            <button
+                              onClick={() => handleUpdateCulturalStatus(reg.id, 'rejected')}
+                              className="p-1.5 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-black rounded-sm transition-colors"
+                              title="Reject"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          )}
+                          <button
+                            onClick={() => handleDeleteCultural(reg.id)}
+                            className="p-1.5 bg-mech-muted/10 text-mech-muted hover:bg-red-500 hover:text-black rounded-sm transition-colors ml-2"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))
