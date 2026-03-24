@@ -37,10 +37,10 @@ export default function Registration() {
     async function fetchEvents() {
       if (!isSupabaseConfigured) {
         setEvents([
-          { id: "1", title: "Robo Wars", type: "technical", fee: 500, time: "10:00 AM", venue: "Main Arena", date: "2026-04-10" },
-          { id: "2", title: "CAD Modeling", type: "technical", fee: 200, time: "TBD", venue: "Computer Lab 1", date: "TBD" },
-          { id: "3", title: "Treasure Hunt", type: "non-technical", fee: 150, time: "TBD", venue: "TBD", date: "TBD" },
-          { id: "4", title: "Gaming Tournament", type: "non-technical", fee: 300, time: "TBD", venue: "TBD", date: "TBD" },
+          { id: "1", title: "Robo Wars", type: "technical", fee: 500, time: "10:00 AM", venue: "Main Arena", date: "25TH MARCH" },
+          { id: "2", title: "CAD Modeling", type: "technical", fee: 200, time: "TBD", venue: "Computer Lab 1", date: "26TH MARCH" },
+          { id: "3", title: "Treasure Hunt", type: "non-technical", fee: 150, time: "TBD", venue: "TBD", date: "25TH MARCH" },
+          { id: "4", title: "Gaming Tournament", type: "non-technical", fee: 300, time: "TBD", venue: "TBD", date: "26TH MARCH" },
         ]);
         setLoading(false);
         return;
@@ -77,6 +77,26 @@ export default function Registration() {
     );
   };
 
+  const isEventRegistrationClosed = (eventDate?: string) => {
+    if (!eventDate) return false;
+    const upperDate = eventDate.toUpperCase();
+    const now = new Date();
+    
+    // March 25 events: Registration ends March 24 10pm
+    if (upperDate.includes("25") && upperDate.includes("MARCH")) {
+      const deadline = new Date("2026-03-24T22:00:00+05:30");
+      return now > deadline;
+    }
+    
+    // March 26 events: Registration ends March 25 10pm
+    if (upperDate.includes("26") && upperDate.includes("MARCH")) {
+      const deadline = new Date("2026-03-25T22:00:00+05:30");
+      return now > deadline;
+    }
+
+    return false;
+  };
+
   const totalAmount = selectedEvents.reduce((total, eventId) => {
     const event = events.find((e) => e.id === eventId);
     return total + (event?.fee || 0);
@@ -86,6 +106,16 @@ export default function Registration() {
     e.preventDefault();
     if (selectedEvents.length === 0) {
       setError("Please select at least one event.");
+      return;
+    }
+
+    const closedSelectedEvents = selectedEvents.filter(id => {
+      const event = events.find(e => e.id === id);
+      return isEventRegistrationClosed(event?.date);
+    });
+
+    if (closedSelectedEvents.length > 0) {
+      setError("Registration has closed for one or more selected events. Please unselect them to proceed.");
       return;
     }
 
@@ -313,24 +343,26 @@ export default function Registration() {
             ) : (
               <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                 {events.map((event) => {
+                  const isClosed = isEventRegistrationClosed(event.date);
                   const isTechnical = event.type === "technical";
                   const hasSelectedTechnical = selectedEvents.some(
                     (id) => events.find((e) => e.id === id)?.type === "technical"
                   );
                   const isOtherTechnicalSelected =
                     isTechnical && hasSelectedTechnical && !selectedEvents.includes(event.id);
+                  const isDisabled = isOtherTechnicalSelected || isClosed;
 
                   return (
                     <label
                       key={event.id}
                       className={`flex items-center justify-between p-4 border rounded-sm transition-colors ${
-                        isOtherTechnicalSelected
+                        isDisabled
                           ? "opacity-50 cursor-not-allowed border-mech-border bg-black/50"
                           : "cursor-pointer"
                       } ${
-                        selectedEvents.includes(event.id)
+                        selectedEvents.includes(event.id) && !isClosed
                           ? "border-mech-accent bg-mech-accent/10"
-                          : !isOtherTechnicalSelected
+                          : !isDisabled
                           ? "border-mech-border bg-black hover:border-mech-muted"
                           : ""
                       }`}
@@ -338,10 +370,10 @@ export default function Registration() {
                       <input
                         type="checkbox"
                         className="hidden"
-                        checked={selectedEvents.includes(event.id)}
-                        disabled={isOtherTechnicalSelected}
+                        checked={selectedEvents.includes(event.id) && !isClosed}
+                        disabled={isDisabled}
                         onChange={() => {
-                          if (!isOtherTechnicalSelected) {
+                          if (!isDisabled) {
                             handleEventToggle(event.id);
                           }
                         }}
@@ -349,21 +381,28 @@ export default function Registration() {
                       <div className="flex items-center space-x-4">
                         <div
                           className={`w-5 h-5 border rounded-sm flex items-center justify-center ${
-                            selectedEvents.includes(event.id)
+                            selectedEvents.includes(event.id) && !isClosed
                               ? "border-mech-accent bg-mech-accent"
                               : "border-mech-muted"
                           }`}
                         >
-                          {selectedEvents.includes(event.id) && (
+                          {selectedEvents.includes(event.id) && !isClosed && (
                             <CheckCircle2 className="w-4 h-4 text-black" />
                           )}
                         </div>
                         <div>
-                          <h3 className="font-bold uppercase tracking-wider text-sm">
-                            {event.title}
-                          </h3>
+                          <div className="flex items-center space-x-2">
+                            <h3 className="font-bold uppercase tracking-wider text-sm">
+                              {event.title}
+                            </h3>
+                            {isClosed && (
+                              <span className="text-[10px] font-bold bg-red-500/20 text-red-500 px-2 py-0.5 rounded-sm uppercase tracking-wider">
+                                Registration Closed
+                              </span>
+                            )}
+                          </div>
                           <span className="text-xs font-mono text-mech-muted uppercase">
-                            {event.type}
+                            {event.type} {event.date && `| ${event.date}`}
                           </span>
                         </div>
                       </div>
