@@ -16,10 +16,12 @@ import ContactUs from "./pages/ContactUs";
 import CulturalEvents from "./pages/CulturalEvents";
 
 export default function App() {
-  const [showSplash, setShowSplash] = useState(true);
+  const [showSplash, setShowSplash] = useState(() => window.location.pathname === "/");
   const [showRegisterSplash, setShowRegisterSplash] = useState(false);
 
   useEffect(() => {
+    if (window.location.pathname !== "/") return;
+
     const splashTimer = setTimeout(() => {
       setShowSplash(false);
       setShowRegisterSplash(true);
