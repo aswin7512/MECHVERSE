@@ -1,8 +1,57 @@
+import { useState, FormEvent } from "react";
 import { motion } from "motion/react";
-import { Music, AlertTriangle, ArrowRight } from "lucide-react";
+import { Music, AlertTriangle, ArrowRight, AlertCircle, CheckCircle2 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { supabase, isSupabaseConfigured } from "../lib/supabase";
 
 export default function CulturalEvents() {
+  const [formData, setFormData] = useState({
+    name: "",
+    department: "",
+    semester: "S1",
+    mobile_number: "",
+    event_type: ""
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setError(null);
+
+    if (!isSupabaseConfigured) {
+      setTimeout(() => {
+        setIsSubmitting(false);
+        setIsSuccess(true);
+      }, 1500);
+      return;
+    }
+
+    try {
+      const { error: submitError } = await supabase
+        .from("cultural_registrations")
+        .insert([
+          {
+            name: formData.name,
+            department: formData.department,
+            semester: formData.semester,
+            mobile_number: formData.mobile_number,
+            event_type: formData.event_type,
+            status: "pending"
+          }
+        ]);
+
+      if (submitError) throw submitError;
+      setIsSuccess(true);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto space-y-12">
       <div className="text-center">
