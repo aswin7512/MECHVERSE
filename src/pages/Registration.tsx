@@ -11,6 +11,7 @@ interface Event {
   time?: string;
   venue?: string;
   date?: string;
+  registration_closed?: boolean;
 }
 
 export default function Registration() {
@@ -37,10 +38,10 @@ export default function Registration() {
     async function fetchEvents() {
       if (!isSupabaseConfigured) {
         setEvents([
-          { id: "1", title: "Robo Wars", type: "technical", fee: 500, time: "10:00 AM", venue: "Main Arena", date: "25TH MARCH" },
-          { id: "2", title: "CAD Modeling", type: "technical", fee: 200, time: "TBD", venue: "Computer Lab 1", date: "26TH MARCH" },
-          { id: "3", title: "Treasure Hunt", type: "non-technical", fee: 150, time: "TBD", venue: "TBD", date: "25TH MARCH" },
-          { id: "4", title: "Gaming Tournament", type: "non-technical", fee: 300, time: "TBD", venue: "TBD", date: "26TH MARCH" },
+          { id: "1", title: "Robo Wars", type: "technical", fee: 500, time: "10:00 AM", venue: "Main Arena", date: "25TH MARCH", registration_closed: false },
+          { id: "2", title: "CAD Modeling", type: "technical", fee: 200, time: "TBD", venue: "Computer Lab 1", date: "26TH MARCH", registration_closed: false },
+          { id: "3", title: "Treasure Hunt", type: "non-technical", fee: 150, time: "TBD", venue: "TBD", date: "25TH MARCH", registration_closed: false },
+          { id: "4", title: "Gaming Tournament", type: "non-technical", fee: 300, time: "TBD", venue: "TBD", date: "26TH MARCH", registration_closed: false },
         ]);
         setLoading(false);
         return;
@@ -49,7 +50,7 @@ export default function Registration() {
       try {
         const { data, error } = await supabase
           .from("events")
-          .select("id, title, type, fee, time, venue, date")
+          .select("id, title, type, fee, time, venue, date, registration_closed")
           .order("title");
 
         if (error) throw error;
@@ -78,8 +79,8 @@ export default function Registration() {
   };
 
   const isEventRegistrationClosed = (event?: Event) => {
-    // Registration is always open - time limits removed
-    return false;
+    // Check if registration is manually closed for this event
+    return event?.registration_closed || false;
   };
 
   const totalAmount = selectedEvents.reduce((total, eventId) => {

@@ -12,6 +12,7 @@ interface Event {
   time?: string;
   venue?: string;
   date?: string;
+  registration_closed?: boolean;
 }
 
 interface Registration {
@@ -110,8 +111,8 @@ export default function AdminDashboard() {
         },
       ]);
       setEvents([
-        { id: "1", title: "Robo Wars", type: "technical", fee: 500, time: "10:00 AM", venue: "Main Arena", date: "2026-04-10" },
-        { id: "2", title: "CAD Modeling", type: "technical", fee: 200, time: "TBD", venue: "Computer Lab 1", date: "TBD" },
+        { id: "1", title: "Robo Wars", type: "technical", fee: 500, time: "10:00 AM", venue: "Main Arena", date: "2026-04-10", registration_closed: false },
+        { id: "2", title: "CAD Modeling", type: "technical", fee: 200, time: "TBD", venue: "Computer Lab 1", date: "TBD", registration_closed: false },
       ]);
       setCulturalRegistrations([
         {
@@ -1063,6 +1064,17 @@ export default function AdminDashboard() {
                               onChange={(e) => setEditEventData({ ...editEventData, venue: e.target.value })}
                               className="w-full bg-black border border-mech-border rounded-sm px-3 py-1.5 text-mech-text focus:outline-none focus:border-mech-accent font-mono text-sm"
                             />
+                          </div>
+                          <div className="space-y-1 md:col-span-3">
+                            <label className="flex items-center space-x-2 text-xs font-mono text-mech-muted uppercase">
+                              <input
+                                type="checkbox"
+                                checked={editEventData.registration_closed || false}
+                                onChange={(e) => setEditEventData({ ...editEventData, registration_closed: e.target.checked })}
+                                className="w-4 h-4 text-mech-accent bg-black border border-mech-border rounded focus:ring-mech-accent focus:ring-1"
+                              />
+                              <span>Registration Closed</span>
+                            </label>
                           </div>
                         </div>
                         <div className="flex justify-end space-x-2 pt-2 border-t border-mech-border">

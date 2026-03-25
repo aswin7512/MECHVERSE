@@ -13,6 +13,7 @@ interface Event {
   time?: string;
   venue?: string;
   date?: string;
+  registration_closed?: boolean;
 }
 
 export default function Events() {
@@ -39,6 +40,7 @@ export default function Events() {
             time: "10:00 AM",
             venue: "Main Arena",
             date: "2026-04-10",
+            registration_closed: false,
           },
           {
             id: "2",
@@ -49,6 +51,7 @@ export default function Events() {
             time: "TBD",
             venue: "Computer Lab 1",
             date: "TBD",
+            registration_closed: false,
           },
           {
             id: "3",
@@ -59,6 +62,7 @@ export default function Events() {
             time: "TBD",
             venue: "TBD",
             date: "TBD",
+            registration_closed: false,
           },
           {
             id: "4",
@@ -69,6 +73,7 @@ export default function Events() {
             time: "TBD",
             venue: "TBD",
             date: "TBD",
+            registration_closed: false,
           },
         ].filter((e) => e.type === type));
         setLoading(false);
