@@ -78,29 +78,7 @@ export default function Registration() {
   };
 
   const isEventRegistrationClosed = (event?: Event) => {
-    if (!event || !event.date) return false;
-    const upperDate = event.date.toUpperCase();
-    const upperTitle = event.title.toUpperCase();
-    const now = new Date();
-    
-    // Technical Workshop: Registration ends March 26 10am
-    if (upperTitle.includes("TECHNICAL WORKSHOP")) {
-      const deadline = new Date("2026-03-26T10:00:00+05:30");
-      return now > deadline;
-    }
-    
-    // March 25 events: Registration ends March 24 10pm
-    if (upperDate.includes("25") && upperDate.includes("MARCH")) {
-      const deadline = new Date("2026-03-24T22:00:00+05:30");
-      return now > deadline;
-    }
-    
-    // March 26 events: Registration ends March 25 10pm
-    if (upperDate.includes("26") && upperDate.includes("MARCH")) {
-      const deadline = new Date("2026-03-25T22:00:00+05:30");
-      return now > deadline;
-    }
-
+    // Registration is always open - time limits removed
     return false;
   };
 
