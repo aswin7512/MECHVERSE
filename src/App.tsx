@@ -105,7 +105,7 @@ export default function App() {
                   src="/team.jpeg" 
                   alt="Mechverse 26 Team" 
                   onError={(e) => (e.currentTarget.style.display = "none")}
-                  className="w-full max-w-3xl h-[120px] sm:h-40 md:h-[280px] object-cover rounded-xl border border-mech-accent/30 shadow-[0_0_15px_rgba(255,51,102,0.2)]" 
+                  className="w-full max-w-3xl max-h-[150px] sm:max-h-[200px] md:max-h-[300px] object-contain rounded-xl border border-mech-accent/30 shadow-[0_0_15px_rgba(255,51,102,0.2)]" 
                 />
                 
                 {/* Coordinators */}
