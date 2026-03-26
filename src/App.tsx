@@ -29,7 +29,7 @@ export default function App() {
 
     const registerTimer = setTimeout(() => {
       setShowRegisterSplash(false);
-    }, 10000);
+    }, 15000);
 
     return () => {
       clearTimeout(splashTimer);
@@ -89,47 +89,86 @@ export default function App() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.5 }}
-            className="fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center font-mono"
+            className="fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center font-mono overflow-y-auto"
           >
             <motion.div
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 1, ease: "easeOut" }}
-              className="text-center flex flex-col items-center justify-between h-full py-16 md:py-24 w-full"
+              transition={{ duration: 0.8, ease: "easeOut" }}
+              className="text-center flex flex-col items-center justify-center min-h-[100dvh] py-4 md:py-8 w-full max-w-6xl mx-auto px-2 sm:px-4 relative"
             >
-              <div className="flex-1 flex items-center justify-center w-full px-4">
-                <Link to="/register" onClick={() => setShowRegisterSplash(false)} className="group flex flex-col items-center justify-center w-full relative">
-                  <div className="absolute inset-0 bg-mech-accent blur-[100px] opacity-20 rounded-full transition-opacity duration-500 group-hover:opacity-40" />
-                  <h1 className="text-5xl md:text-8xl font-black uppercase tracking-tighter text-glow relative z-10 text-mech-text transition-colors duration-500 mb-6 max-w-4xl leading-tight text-center">
-                    Register Now
-                  </h1>
-                  <p className="mt-2 text-lg md:text-2xl font-mono text-mech-muted tracking-widest uppercase mb-8 text-center px-4 relative z-10">
-                    Secure your spot in the ultimate showdown.
-                  </p>
-                  <div className="inline-flex items-center justify-center space-x-3 bg-mech-accent border border-mech-accent/30 px-8 py-4 rounded-full group-hover:bg-mech-accent/80 transition-colors relative z-10">
-                    <span className="font-mono font-bold text-black tracking-widest uppercase text-xl">
-                      Join Now
-                    </span>
+              <div className="absolute inset-0 bg-mech-accent blur-[150px] opacity-10 rounded-full" />
+              
+              <div className="relative z-10 w-full mb-3 md:mb-4 flex flex-col gap-3 md:gap-4 items-center mt-2 md:mt-4">
+                {/* Team Image */}
+                <img 
+                  src="/team.jpeg" 
+                  alt="Mechverse 26 Team" 
+                  onError={(e) => (e.currentTarget.style.display = "none")}
+                  className="w-full max-w-3xl h-[120px] sm:h-40 md:h-[280px] object-cover rounded-xl border border-mech-accent/30 shadow-[0_0_15px_rgba(255,51,102,0.2)]" 
+                />
+                
+                {/* Coordinators */}
+                <div className="w-full max-w-xl flex flex-row justify-center gap-3 md:gap-8 mt-1 md:mt-2 px-2 md:px-4">
+                  <div className="flex-1 max-w-[100px] sm:max-w-[140px] flex flex-col items-center justify-center bg-black/40 p-1.5 md:p-2 rounded-xl border border-mech-accent/20 backdrop-blur-sm">
+                    <img 
+                      src="/rishiraj.png" 
+                      alt="Rishiraj R" 
+                      onError={(e) => (e.currentTarget.style.display = "none")}
+                      className="w-full aspect-square object-cover rounded-lg border border-mech-accent/30 shadow-[0_0_10px_rgba(255,51,102,0.15)] mb-1.5 md:mb-2" 
+                    />
+                    <p className="text-mech-text font-mono text-[8px] md:text-xs font-bold uppercase tracking-wider text-center text-glow">Rishiraj R</p>
                   </div>
-                </Link>
+                  
+                  <div className="flex-1 max-w-[100px] sm:max-w-[140px] flex flex-col items-center justify-center bg-black/40 p-1.5 md:p-2 rounded-xl border border-mech-accent/20 backdrop-blur-sm">
+                    <img 
+                      src="/madhav.png" 
+                      alt="Madhav Jayaprakash" 
+                      onError={(e) => (e.currentTarget.style.display = "none")}
+                      className="w-full aspect-square object-cover rounded-lg border border-mech-accent/30 shadow-[0_0_10px_rgba(255,51,102,0.15)] mb-1.5 md:mb-2" 
+                    />
+                    <p className="text-mech-text font-mono text-[8px] md:text-xs font-bold uppercase tracking-wider text-center text-glow">Madhav Jayaprakash</p>
+                  </div>
+                </div>
               </div>
 
-              <div className="mt-auto">
-                <h1 className="text-5xl md:text-7xl font-black uppercase tracking-widest text-glow text-mech-accent mb-4">
-                  Mechverse
+              <div className="relative z-10 bg-black/60 p-3 md:p-6 rounded-2xl border border-mech-accent/20 backdrop-blur-md w-full max-w-3xl shadow-xl mt-1 mb-4 md:mb-6">
+                <h1 className="text-lg sm:text-2xl md:text-4xl lg:text-5xl font-black uppercase tracking-tighter text-glow text-mech-text mb-2 md:mb-6 leading-tight group">
+                  Thank you for making <br className="hidden sm:block"/><span className="text-mech-accent group-hover:text-white transition-colors duration-500">Mechverse 26</span> a success!!! &lt;3
                 </h1>
-                <div className="w-64 h-1 bg-mech-border mx-auto overflow-hidden relative">
+                
+                <div className="w-24 md:w-48 h-1 bg-mech-border mx-auto overflow-hidden relative mb-2 md:mb-6">
                   <motion.div
                     initial={{ x: "-100%" }}
                     animate={{ x: "100%" }}
-                    transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
+                    transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
                     className="absolute inset-0 bg-mech-accent"
                   />
                 </div>
-                <p className="mt-4 text-mech-muted tracking-widest text-sm uppercase">
-                  Loading Experience...
+                
+                <p className="text-xs sm:text-sm md:text-2xl font-mono text-mech-accent font-bold tracking-widest uppercase mb-1 md:mb-4 text-glow">
+                  - Mechverse 26 Team
+                </p>
+                
+                <p className="text-[10px] sm:text-[11px] md:text-base font-mono text-mech-muted opacity-90 mt-1 md:mt-4 leading-tight md:leading-relaxed tracking-wide">
+                  Special thanks to the main coordinators<br/>
+                  <span className="text-mech-text font-bold text-glow px-1 md:px-2">Rishiraj R</span> 
+                  <span className="opacity-50 text-[8px] sm:text-[10px] md:text-xs">and</span>
+                  <span className="text-mech-text font-bold text-glow px-1 md:px-2">Madhav Jayaprakash</span>
+                </p>
+                
+                <p className="text-[8px] sm:text-[9px] md:text-[11px] font-mono text-mech-accent/60 mt-3 md:mt-6 tracking-tight italic">
+                  Also the web admins Amal S Kumar and Aswin P (evidelum pere varatee)
                 </p>
               </div>
+
+              <button 
+                onClick={() => setShowRegisterSplash(false)} 
+                className="relative z-10 flex items-center justify-center space-x-2 font-mono text-mech-text hover:text-white transition-all duration-300 border border-mech-accent/30 hover:bg-mech-accent/20 px-6 sm:px-8 py-2 md:py-3 rounded-full uppercase tracking-widest text-[10px] md:text-sm hover:shadow-[0_0_15px_rgba(255,51,102,0.4)] hover:scale-105"
+              >
+                <span>Continue</span>
+                <svg className="w-3 h-3 md:w-4 md:h-4 ml-1 md:ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+              </button>
             </motion.div>
           </motion.div>
         )}
