@@ -145,9 +145,9 @@ export default function AdminDashboard() {
 
       setRegistrations((regRes.data || []).map((reg: any) => ({
         ...reg,
-        morning_attended: reg.morning_attended ?? reg.attended ?? false,
+        morning_attended: reg.morning_attended ?? false,
         afternoon_attended: reg.afternoon_attended ?? false,
-        attended: reg.morning_attended ?? reg.attended ?? false,
+        attended: (reg.morning_attended ?? false) || (reg.afternoon_attended ?? false),
       })));
       setEvents(evRes.data || []);
       setCulturalRegistrations(cultRes.data || []);
@@ -383,7 +383,7 @@ export default function AdminDashboard() {
       return;
     }
     try {
-      const { id, created_at, ...dataToUpdate } = editingRegistration;
+      const { id, created_at, attended, ...dataToUpdate } = editingRegistration;
       const { error } = await supabase.from("registrations").update(dataToUpdate).eq("id", id);
       if (error) throw error;
       
@@ -455,8 +455,7 @@ export default function AdminDashboard() {
     try {
       const target = registrations.find(r => r.id === id);
       const afternoon_attended = target?.afternoon_attended ?? false;
-      const attended = morning_attended || afternoon_attended;
-      const { error } = await supabase.from("registrations").update({ morning_attended, afternoon_attended, attended }).eq("id", id);
+      const { error } = await supabase.from("registrations").update({ morning_attended, afternoon_attended }).eq("id", id);
       if (error) throw error;
     } catch (err: any) {
       console.error("Error updating morning attendance: ", err.message);
@@ -474,8 +473,7 @@ export default function AdminDashboard() {
     try {
       const target = registrations.find(r => r.id === id);
       const morning_attended = target?.morning_attended ?? false;
-      const attended = morning_attended || afternoon_attended;
-      const { error } = await supabase.from("registrations").update({ morning_attended, afternoon_attended, attended }).eq("id", id);
+      const { error } = await supabase.from("registrations").update({ morning_attended, afternoon_attended }).eq("id", id);
       if (error) throw error;
     } catch (err: any) {
       console.error("Error updating afternoon attendance: ", err.message);
@@ -487,7 +485,7 @@ export default function AdminDashboard() {
     setRegistrations(registrations.map(r => r.id === id ? { ...r, attended, morning_attended: attended, afternoon_attended: false } : r));
     if (!isSupabaseConfigured) return;
     try {
-      const { error } = await supabase.from("registrations").update({ attended, morning_attended: attended, afternoon_attended: false }).eq("id", id);
+      const { error } = await supabase.from("registrations").update({ morning_attended: attended, afternoon_attended: false }).eq("id", id);
       if (error) throw error;
     } catch (err: any) {
       console.error("Error updating attendance: ", err.message);
