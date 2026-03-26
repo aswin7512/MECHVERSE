@@ -28,7 +28,8 @@ export default function Events() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    async function fetchEvents() {
+    async function fetchEvents(showLoading = true) {
+      if (showLoading) setLoading(true);
       if (!isSupabaseConfigured) {
         setEvents([
           {
@@ -76,7 +77,7 @@ export default function Events() {
             registration_closed: false,
           },
         ].filter((e) => e.type === type));
-        setLoading(false);
+        if (showLoading) setLoading(false);
         return;
       }
 
@@ -92,11 +93,17 @@ export default function Events() {
       } catch (err: any) {
         setError(err.message);
       } finally {
-        setLoading(false);
+        if (showLoading) setLoading(false);
       }
     }
 
     fetchEvents();
+
+    const intervalId = setInterval(() => {
+      fetchEvents(false);
+    }, 5000);
+
+    return () => clearInterval(intervalId);
   }, [type]);
 
   return (

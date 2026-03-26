@@ -90,8 +90,8 @@ export default function AdminDashboard() {
 
   const [editingRegistration, setEditingRegistration] = useState<Registration | null>(null);
 
-  const fetchData = async () => {
-    setLoading(true);
+  const fetchData = async (showLoading = true) => {
+    if (showLoading) setLoading(true);
     if (!isSupabaseConfigured) {
       setRegistrations([
         {
@@ -126,7 +126,7 @@ export default function AdminDashboard() {
           created_at: new Date().toISOString()
         }
       ]);
-      setLoading(false);
+      if (showLoading) setLoading(false);
       return;
     }
 
@@ -147,7 +147,7 @@ export default function AdminDashboard() {
     } catch (err: any) {
       setError(err.message);
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   };
 
@@ -158,6 +158,12 @@ export default function AdminDashboard() {
     } else {
       setIsAuthenticated(true);
       fetchData();
+
+      const intervalId = setInterval(() => {
+        fetchData(false);
+      }, 5000);
+
+      return () => clearInterval(intervalId);
     }
   }, [navigate]);
 

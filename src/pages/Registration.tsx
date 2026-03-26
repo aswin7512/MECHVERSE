@@ -35,7 +35,8 @@ export default function Registration() {
   const [selectedEvents, setSelectedEvents] = useState<string[]>([]);
 
   useEffect(() => {
-    async function fetchEvents() {
+    async function fetchEvents(showLoading = true) {
+      if (showLoading) setLoading(true);
       if (!isSupabaseConfigured) {
         setEvents([
           { id: "1", title: "Robo Wars", type: "technical", fee: 500, time: "10:00 AM", venue: "Main Arena", date: "25TH MARCH", registration_closed: false },
@@ -43,7 +44,7 @@ export default function Registration() {
           { id: "3", title: "Treasure Hunt", type: "non-technical", fee: 150, time: "TBD", venue: "TBD", date: "25TH MARCH", registration_closed: false },
           { id: "4", title: "Gaming Tournament", type: "non-technical", fee: 300, time: "TBD", venue: "TBD", date: "26TH MARCH", registration_closed: false },
         ]);
-        setLoading(false);
+        if (showLoading) setLoading(false);
         return;
       }
 
@@ -58,11 +59,17 @@ export default function Registration() {
       } catch (err: any) {
         setError(err.message);
       } finally {
-        setLoading(false);
+        if (showLoading) setLoading(false);
       }
     }
 
     fetchEvents();
+
+    const intervalId = setInterval(() => {
+      fetchEvents(false);
+    }, 5000);
+
+    return () => clearInterval(intervalId);
   }, []);
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
