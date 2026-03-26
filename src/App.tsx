@@ -105,7 +105,7 @@ export default function App() {
                   src="/team.jpeg" 
                   alt="Mechverse 26 Team" 
                   onError={(e) => (e.currentTarget.style.display = "none")}
-                  className="w-full max-w-3xl max-h-[150px] sm:max-h-[200px] md:max-h-[300px] object-contain rounded-xl border border-mech-accent/30 shadow-[0_0_15px_rgba(255,51,102,0.2)]" 
+                  className="w-full max-w-3xl h-[120px] sm:h-40 md:h-[280px] object-cover rounded-xl border border-mech-accent/30 shadow-[0_0_15px_rgba(255,51,102,0.2)]" 
                 />
                 
                 {/* Coordinators */}
@@ -133,7 +133,7 @@ export default function App() {
               </div>
 
               <div className="relative z-10 bg-black/60 p-3 md:p-6 rounded-2xl border border-mech-accent/20 backdrop-blur-md w-full max-w-3xl shadow-xl mt-1 mb-4 md:mb-6">
-                <h1 className="text-lg sm:text-2xl md:text-4xl lg:text-5xl font-black uppercase tracking-tighter text-glow text-mech-text mb-2 md:mb-6 leading-tight group">
+                <h1 className="text-base sm:text-xl md:text-3xl lg:text-4xl font-black uppercase tracking-tighter text-glow text-mech-text mb-2 md:mb-6 leading-tight group">
                   Thank you for making <br className="hidden sm:block"/><span className="text-mech-accent group-hover:text-white transition-colors duration-500">Mechverse 26</span> a success!!! &lt;3
                 </h1>
                 
@@ -146,7 +146,7 @@ export default function App() {
                   />
                 </div>
                 
-                <p className="text-xs sm:text-sm md:text-2xl font-mono text-mech-accent font-bold tracking-widest uppercase mb-1 md:mb-4 text-glow">
+                <p className="text-[10px] sm:text-xs md:text-xl font-mono text-mech-accent font-bold tracking-widest uppercase mb-1 md:mb-4 text-glow">
                   - Mechverse 26 Team
                 </p>
                 
