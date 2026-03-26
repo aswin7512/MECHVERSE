@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
-import { Wrench, Settings, Cpu, FileText, UserCircle, Music, Phone, Menu, X } from "lucide-react";
+import { Wrench, Settings, Cpu, FileText, UserCircle, Music, Phone, Menu, X, Award } from "lucide-react";
 import { cn } from "../lib/utils";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -13,6 +13,7 @@ export default function Layout() {
     { name: "Tech Events", path: "/technical", icon: Cpu },
     { name: "Non-Tech Events", path: "/non-technical", icon: Settings },
     { name: "Cultural", path: "/cultural", icon: Music },
+    { name: "Certificates", path: "/certificates", icon: Award },
     { name: "Contact", path: "/contact", icon: Phone },
     { name: "Register", path: "/register", icon: FileText },
   ];
