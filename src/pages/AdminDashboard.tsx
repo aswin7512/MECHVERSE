@@ -31,6 +31,8 @@ interface Registration {
   status?: 'pending' | 'accepted' | 'rejected';
   roll_no?: string;
   attended?: boolean;
+  morning_attended?: boolean;
+  afternoon_attended?: boolean;
 }
 
 interface CulturalRegistration {
@@ -141,7 +143,12 @@ export default function AdminDashboard() {
       if (evRes.error) throw evRes.error;
       if (cultRes.error) throw cultRes.error;
 
-      setRegistrations(regRes.data || []);
+      setRegistrations((regRes.data || []).map((reg: any) => ({
+        ...reg,
+        morning_attended: reg.morning_attended ?? false,
+        afternoon_attended: reg.afternoon_attended ?? false,
+        attended: (reg.morning_attended ?? false) || (reg.afternoon_attended ?? false),
+      })));
       setEvents(evRes.data || []);
       setCulturalRegistrations(cultRes.data || []);
     } catch (err: any) {
@@ -255,7 +262,7 @@ export default function AdminDashboard() {
       ? registrations 
       : registrations.filter(r => (r.events || []).includes(selectedEventFilter));
       
-    const attendedRegs = dataToExport.filter(r => r.attended);
+    const attendedRegs = dataToExport.filter(r => r.morning_attended || r.afternoon_attended);
     
     // Sort by semester, then by class to group like-minded attendees together
     attendedRegs.sort((a, b) => {
@@ -268,14 +275,16 @@ export default function AdminDashboard() {
       return classA.localeCompare(classB);
     });
 
-    const headers = ["Name", "Semester", "Class", "Roll No"];
+    const headers = ["Name", "Semester", "Class", "Roll No", "Morning", "Afternoon"];
     
     const csvData = attendedRegs.map(reg => {
       return [
         `"${reg.name}"`,
         `"${reg.semester}"`,
         `"${reg.student_class}"`,
-        `"${reg.roll_no || ''}"`
+        `"${reg.roll_no || ''}"`,
+        `"${reg.morning_attended ? 'Yes' : 'No'}"`,
+        `"${reg.afternoon_attended ? 'Yes' : 'No'}"`
       ].join(",");
     });
     
@@ -374,7 +383,7 @@ export default function AdminDashboard() {
       return;
     }
     try {
-      const { id, created_at, ...dataToUpdate } = editingRegistration;
+      const { id, created_at, attended, ...dataToUpdate } = editingRegistration;
       const { error } = await supabase.from("registrations").update(dataToUpdate).eq("id", id);
       if (error) throw error;
       
@@ -435,12 +444,49 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleToggleAttendance = async (id: string, currentlyAttended: boolean) => {
-    const attended = !currentlyAttended;
-    setRegistrations(registrations.map(r => r.id === id ? { ...r, attended } : r));
+  const handleToggleMorningAttendance = async (id: string, currentlyMorning: boolean) => {
+    const morning_attended = !currentlyMorning;
+    setRegistrations(registrations.map(r => r.id === id ? {
+      ...r,
+      morning_attended,
+      attended: morning_attended || !!r.afternoon_attended,
+    } : r));
     if (!isSupabaseConfigured) return;
     try {
-      await supabase.from("registrations").update({ attended }).eq("id", id);
+      const target = registrations.find(r => r.id === id);
+      const afternoon_attended = target?.afternoon_attended ?? false;
+      const { error } = await supabase.from("registrations").update({ morning_attended, afternoon_attended }).eq("id", id);
+      if (error) throw error;
+    } catch (err: any) {
+      console.error("Error updating morning attendance: ", err.message);
+    }
+  };
+
+  const handleToggleAfternoonAttendance = async (id: string, currentlyAfternoon: boolean) => {
+    const afternoon_attended = !currentlyAfternoon;
+    setRegistrations(registrations.map(r => r.id === id ? {
+      ...r,
+      afternoon_attended,
+      attended: !!r.morning_attended || afternoon_attended,
+    } : r));
+    if (!isSupabaseConfigured) return;
+    try {
+      const target = registrations.find(r => r.id === id);
+      const morning_attended = target?.morning_attended ?? false;
+      const { error } = await supabase.from("registrations").update({ morning_attended, afternoon_attended }).eq("id", id);
+      if (error) throw error;
+    } catch (err: any) {
+      console.error("Error updating afternoon attendance: ", err.message);
+    }
+  };
+
+  const handleToggleAttendance = async (id: string, currentlyAttended: boolean) => {
+    const attended = !currentlyAttended;
+    setRegistrations(registrations.map(r => r.id === id ? { ...r, attended, morning_attended: attended, afternoon_attended: false } : r));
+    if (!isSupabaseConfigured) return;
+    try {
+      const { error } = await supabase.from("registrations").update({ morning_attended: attended, afternoon_attended: false }).eq("id", id);
+      if (error) throw error;
     } catch (err: any) {
       console.error("Error updating attendance: ", err.message);
     }
@@ -747,7 +793,8 @@ export default function AdminDashboard() {
                   <th className="px-6 py-4 border-b border-mech-border">Sem & Class</th>
                   <th className="px-6 py-4 border-b border-mech-border">Contact</th>
                   <th className="px-6 py-4 border-b border-mech-border">Roll No</th>
-                  <th className="px-6 py-4 border-b border-mech-border text-center">Attended</th>
+                  <th className="px-6 py-4 border-b border-mech-border text-center">Morning</th>
+                  <th className="px-6 py-4 border-b border-mech-border text-center">Afternoon</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-mech-border">
@@ -759,7 +806,7 @@ export default function AdminDashboard() {
                   </tr>
                 ) : (
                   filteredRegistrations.filter(r => r.status === 'accepted').map((reg) => (
-                    <tr key={reg.id} className={`hover:bg-white/5 transition-colors ${reg.attended ? 'bg-mech-accent/5' : ''}`}>
+                    <tr key={reg.id} className={`hover:bg-white/5 transition-colors ${reg.morning_attended ? 'bg-mech-accent/5' : ''}`}>
                       <td className="px-6 py-4 font-bold text-mech-text">{reg.name}</td>
                       <td className="px-6 py-4">{reg.semester} - {reg.student_class}</td>
                       <td className="px-6 py-4">{reg.phone}</td>
@@ -777,12 +824,27 @@ export default function AdminDashboard() {
                         <label className="inline-flex items-center cursor-pointer">
                           <input
                             type="checkbox"
-                            checked={!!reg.attended}
-                            onChange={() => handleToggleAttendance(reg.id, !!reg.attended)}
+                            checked={!!reg.morning_attended}
+                            onChange={() => handleToggleMorningAttendance(reg.id, !!reg.morning_attended)}
                             className="hidden"
                           />
                           <div className={`w-6 h-6 border rounded-sm flex items-center justify-center transition-colors ${
-                            reg.attended ? 'bg-mech-accent border-mech-accent text-black' : 'border-mech-muted text-transparent'
+                            reg.morning_attended ? 'bg-mech-accent border-mech-accent text-black' : 'border-mech-muted text-transparent'
+                          }`}>
+                            <Check className="w-4 h-4" />
+                          </div>
+                        </label>
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <label className="inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={!!reg.afternoon_attended}
+                            onChange={() => handleToggleAfternoonAttendance(reg.id, !!reg.afternoon_attended)}
+                            className="hidden"
+                          />
+                          <div className={`w-6 h-6 border rounded-sm flex items-center justify-center transition-colors ${
+                            reg.afternoon_attended ? 'bg-mech-accent border-mech-accent text-black' : 'border-mech-muted text-transparent'
                           }`}>
                             <Check className="w-4 h-4" />
                           </div>
