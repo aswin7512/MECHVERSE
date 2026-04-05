@@ -15,6 +15,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import ContactUs from "./pages/ContactUs";
 import CulturalEvents from "./pages/CulturalEvents";
 import Certificates from "./pages/Certificates";
+import Validate from "./pages/Validate";
 
 export default function App() {
   const [showSplash, setShowSplash] = useState(() => window.location.pathname === "/");
@@ -184,6 +185,7 @@ export default function App() {
           <Route path="contact" element={<ContactUs />} />
           <Route path="cultural" element={<CulturalEvents />} />
           <Route path="certificates" element={<Certificates />} />
+          <Route path="validate" element={<Validate />} />
           <Route path="admin" element={<AdminLogin />} />
           <Route path="admin/dashboard" element={<AdminDashboard />} />
         </Route>

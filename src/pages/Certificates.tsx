@@ -2,6 +2,7 @@ import { motion } from "motion/react";
 import { Award, Download, Search } from "lucide-react";
 import { useState } from "react";
 import React from "react";
+import { Link } from "react-router-dom";
 
 export default function Certificates() {
   const [prpCode, setPrpCode] = useState("");
@@ -77,6 +78,15 @@ export default function Certificates() {
             {loading ? "Searching..." : "Search Certificates"}
           </button>
         </form>
+
+        <div className="mb-8">
+          <Link
+            to="/validate"
+            className="bg-mech-accent text-mech-bg px-6 py-2 rounded-full font-bold uppercase tracking-widest hover:bg-mech-accent/80 transition-colors inline-block"
+          >
+            Validate Certificate
+          </Link>
+        </div>
 
         {error && (
           <p className="text-red-400 mb-4">{error}</p>
