@@ -33,7 +33,7 @@ export default function Certificates() {
   };
 
   const downloadCertificate = (fileName: string) => {
-    window.open(`/${fileName}`, '_blank');
+    window.open(`/certificates/${fileName}`, '_blank');
   };
 
   return (
