@@ -38,7 +38,13 @@ export default function Certificates() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
+    <div className="relative flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
+      <Link
+        to="/validate"
+        className="absolute top-4 right-4 bg-mech-accent text-mech-bg px-4 py-2 rounded-full font-bold uppercase tracking-widest hover:bg-mech-accent/80 transition-colors text-sm"
+      >
+        Validate Certificate
+      </Link>
       <motion.div
         initial={{ scale: 0.5, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
@@ -78,15 +84,6 @@ export default function Certificates() {
             {loading ? "Searching..." : "Search Certificates"}
           </button>
         </form>
-
-        <div className="mb-8">
-          <Link
-            to="/validate"
-            className="bg-mech-accent text-mech-bg px-6 py-2 rounded-full font-bold uppercase tracking-widest hover:bg-mech-accent/80 transition-colors inline-block"
-          >
-            Validate Certificate
-          </Link>
-        </div>
 
         {error && (
           <p className="text-red-400 mb-4">{error}</p>
