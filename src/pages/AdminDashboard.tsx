@@ -258,36 +258,57 @@ export default function AdminDashboard() {
   };
 
   const exportAttendanceCSV = () => {
-    const dataToExport = selectedEventFilter === "all" 
-      ? registrations 
+    const dataToExport = selectedEventFilter === "all"
+      ? registrations
       : registrations.filter(r => (r.events || []).includes(selectedEventFilter));
-      
+
     const attendedRegs = dataToExport.filter(r => r.morning_attended || r.afternoon_attended);
-    
+
     // Sort by semester, then by class to group like-minded attendees together
     attendedRegs.sort((a, b) => {
       const semA = a.semester || "";
       const semB = b.semester || "";
       if (semA !== semB) return semA.localeCompare(semB);
-      
+
       const classA = a.student_class || "";
       const classB = b.student_class || "";
       return classA.localeCompare(classB);
     });
 
-    const headers = ["Name", "Semester", "Class", "Roll No", "Morning", "Afternoon"];
-    
+    const headers = [
+      "Pilot Name",
+      "College",
+      "KTU ID",
+      "Class (Sem)",
+      "Phone",
+      "Email",
+      "Events",
+      "Total",
+      "Payment",
+      "Status",
+      "Date"
+    ];
+
     const csvData = attendedRegs.map(reg => {
+      const eventNames = (reg.events || [])
+        .map(eventId => events.find(event => event.id === eventId)?.title || eventId)
+        .join("; ");
+
       return [
-        `"${reg.name}"`,
-        `"${reg.semester}"`,
-        `"${reg.student_class}"`,
-        `"${reg.roll_no || ''}"`,
-        `"${reg.morning_attended ? 'Yes' : 'No'}"`,
-        `"${reg.afternoon_attended ? 'Yes' : 'No'}"`
+        `"${reg.name || ''}"`,
+        `"${reg.college || ''}"`,
+        `"${reg.ktu_id || ''}"`,
+        `"${reg.student_class || ''} (${reg.semester || ''})"`,
+        `"${reg.phone || ''}"`,
+        `"${reg.email || ''}"`,
+        `"${eventNames}"`,
+        `"${reg.total_amount ?? ''}"`,
+        `"${reg.transaction_id || ''}"`,
+        `"${reg.status || 'pending'}"`,
+        `"${reg.created_at ? new Date(reg.created_at).toLocaleDateString() : ''}"`
       ].join(",");
     });
-    
+
     const csvString = [headers.join(","), ...csvData].join("\n");
     const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
     const url = window.URL.createObjectURL(blob);
@@ -790,9 +811,16 @@ export default function AdminDashboard() {
               <thead className="bg-black/50 text-mech-muted uppercase text-xs">
                 <tr>
                   <th className="px-6 py-4 border-b border-mech-border">Pilot Name</th>
-                  <th className="px-6 py-4 border-b border-mech-border">Sem & Class</th>
-                  <th className="px-6 py-4 border-b border-mech-border">Contact</th>
-                  <th className="px-6 py-4 border-b border-mech-border">Roll No</th>
+                  <th className="px-6 py-4 border-b border-mech-border">College</th>
+                  <th className="px-6 py-4 border-b border-mech-border">KTU ID</th>
+                  <th className="px-6 py-4 border-b border-mech-border">Class (Sem)</th>
+                  <th className="px-6 py-4 border-b border-mech-border">Phone</th>
+                  <th className="px-6 py-4 border-b border-mech-border">Email</th>
+                  <th className="px-6 py-4 border-b border-mech-border">Events</th>
+                  <th className="px-6 py-4 border-b border-mech-border">Total</th>
+                  <th className="px-6 py-4 border-b border-mech-border">Payment</th>
+                  <th className="px-6 py-4 border-b border-mech-border">Status</th>
+                  <th className="px-6 py-4 border-b border-mech-border">Date</th>
                   <th className="px-6 py-4 border-b border-mech-border text-center">Morning</th>
                   <th className="px-6 py-4 border-b border-mech-border text-center">Afternoon</th>
                 </tr>
@@ -800,58 +828,62 @@ export default function AdminDashboard() {
               <tbody className="divide-y divide-mech-border">
                 {filteredRegistrations.filter(r => r.status === 'accepted').length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-8 text-center text-mech-muted">
+                    <td colSpan={13} className="px-6 py-8 text-center text-mech-muted">
                       No accepted registrations found for this activity.
                     </td>
                   </tr>
                 ) : (
-                  filteredRegistrations.filter(r => r.status === 'accepted').map((reg) => (
-                    <tr key={reg.id} className={`hover:bg-white/5 transition-colors ${reg.morning_attended ? 'bg-mech-accent/5' : ''}`}>
-                      <td className="px-6 py-4 font-bold text-mech-text">{reg.name}</td>
-                      <td className="px-6 py-4">{reg.semester} - {reg.student_class}</td>
-                      <td className="px-6 py-4">{reg.phone}</td>
-                      <td className="px-6 py-4">
-                        <input
-                          type="text"
-                          value={reg.roll_no || ""}
-                          onChange={(e) => setRegistrations(registrations.map(r => r.id === reg.id ? { ...r, roll_no: e.target.value } : r))}
-                          onBlur={(e) => handleUpdateRollNo(reg.id, e.target.value)}
-                          className="w-24 bg-black border border-mech-border rounded-sm px-3 py-1.5 text-mech-text focus:outline-none focus:border-mech-accent font-mono text-sm uppercase"
-                          placeholder="e.g. 1"
-                        />
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <label className="inline-flex items-center cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={!!reg.morning_attended}
-                            onChange={() => handleToggleMorningAttendance(reg.id, !!reg.morning_attended)}
-                            className="hidden"
-                          />
-                          <div className={`w-6 h-6 border rounded-sm flex items-center justify-center transition-colors ${
-                            reg.morning_attended ? 'bg-mech-accent border-mech-accent text-black' : 'border-mech-muted text-transparent'
-                          }`}>
-                            <Check className="w-4 h-4" />
-                          </div>
-                        </label>
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <label className="inline-flex items-center cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={!!reg.afternoon_attended}
-                            onChange={() => handleToggleAfternoonAttendance(reg.id, !!reg.afternoon_attended)}
-                            className="hidden"
-                          />
-                          <div className={`w-6 h-6 border rounded-sm flex items-center justify-center transition-colors ${
-                            reg.afternoon_attended ? 'bg-mech-accent border-mech-accent text-black' : 'border-mech-muted text-transparent'
-                          }`}>
-                            <Check className="w-4 h-4" />
-                          </div>
-                        </label>
-                      </td>
-                    </tr>
-                  ))
+                  filteredRegistrations.filter(r => r.status === 'accepted').map((reg) => {
+                    const eventNames = (reg.events || [])
+                      .map(eventId => events.find(event => event.id === eventId)?.title || eventId)
+                      .join(", ");
+
+                    return (
+                      <tr key={reg.id} className={`hover:bg-white/5 transition-colors ${reg.morning_attended ? 'bg-mech-accent/5' : ''}`}>
+                        <td className="px-6 py-4 font-bold text-mech-text">{reg.name}</td>
+                        <td className="px-6 py-4">{reg.college}</td>
+                        <td className="px-6 py-4">{reg.ktu_id}</td>
+                        <td className="px-6 py-4">{reg.student_class} ({reg.semester})</td>
+                        <td className="px-6 py-4">{reg.phone}</td>
+                        <td className="px-6 py-4">{reg.email}</td>
+                        <td className="px-6 py-4">{eventNames || '—'}</td>
+                        <td className="px-6 py-4">{reg.total_amount ?? '—'}</td>
+                        <td className="px-6 py-4">{reg.transaction_id || '—'}</td>
+                        <td className="px-6 py-4">{reg.status}</td>
+                        <td className="px-6 py-4">{reg.created_at ? new Date(reg.created_at).toLocaleDateString() : '—'}</td>
+                        <td className="px-6 py-4 text-center">
+                          <label className="inline-flex items-center cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={!!reg.morning_attended}
+                              onChange={() => handleToggleMorningAttendance(reg.id, !!reg.morning_attended)}
+                              className="hidden"
+                            />
+                            <div className={`w-6 h-6 border rounded-sm flex items-center justify-center transition-colors ${
+                              reg.morning_attended ? 'bg-mech-accent border-mech-accent text-black' : 'border-mech-muted text-transparent'
+                            }`}>
+                              <Check className="w-4 h-4" />
+                            </div>
+                          </label>
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          <label className="inline-flex items-center cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={!!reg.afternoon_attended}
+                              onChange={() => handleToggleAfternoonAttendance(reg.id, !!reg.afternoon_attended)}
+                              className="hidden"
+                            />
+                            <div className={`w-6 h-6 border rounded-sm flex items-center justify-center transition-colors ${
+                              reg.afternoon_attended ? 'bg-mech-accent border-mech-accent text-black' : 'border-mech-muted text-transparent'
+                            }`}>
+                              <Check className="w-4 h-4" />
+                            </div>
+                          </label>
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>

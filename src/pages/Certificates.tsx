@@ -12,8 +12,8 @@ export default function Certificates() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const code = prpCode.toUpperCase().trim();
-    if (code.length !== 10) {
-      setError("PRP CODE must be exactly 10 characters.");
+    if (code.length < 10) {
+      setError("PRP CODE must be at least 10 characters.");
       return;
     }
     setError("");
@@ -64,8 +64,7 @@ export default function Certificates() {
               type="text"
               value={prpCode}
               onChange={(e) => setPrpCode(e.target.value)}
-              placeholder="Enter PRP CODE (10 characters)"
-              maxLength={10}
+              placeholder="Enter PRP CODE (10 or more characters)"
               className="bg-transparent text-mech-text placeholder-mech-muted outline-none uppercase"
               required
             />
